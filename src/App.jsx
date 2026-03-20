@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import ServicesSection from './components/ServicesSection';
+import AboutSection from './components/AboutSection';
 import WorkersSection from './components/WorkersSection';
 import Footer from './components/Footer';
 import BookingModal from './components/BookingModal';
@@ -194,6 +195,7 @@ function App() {
           onExploreServices={handleExploreServices}
         />
         <ServicesSection onServiceSelect={handleServiceSelect} />
+        <AboutSection />
         <WorkersSection
           selectedService={selectedService}
           workers={filteredWorkers}
