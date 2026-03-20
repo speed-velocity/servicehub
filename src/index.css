@@ -15,14 +15,133 @@
   --text-primary: #ffffff;
   --text-secondary: #9ca3af;
   --border: rgba(255, 255, 255, 0.07);
+  --glass-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  --glass-fill-strong: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-shadow: 0 24px 55px rgba(0, 0, 0, 0.28);
 }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--bg-primary);
+  background:
+    radial-gradient(circle at 12% 12%, rgba(96, 165, 250, 0.2), transparent 16%),
+    radial-gradient(circle at 84% 14%, rgba(59, 130, 246, 0.16), transparent 16%),
+    radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.08), transparent 32%),
+    linear-gradient(180deg, #09111f 0%, #0b0b0b 34%, #090d14 100%);
   color: var(--text-primary);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.48), transparent 88%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+header {
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.76), rgba(11, 11, 11, 0.74)) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+  box-shadow: 0 16px 44px rgba(2, 6, 23, 0.28);
+}
+
+.desktop-nav {
+  padding: 0.55rem 0.7rem 0.55rem 1.25rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255,255,255,0.09);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 16px 36px rgba(2, 6, 23, 0.24);
+}
+
+.desktop-nav-glass {
+  position: relative;
+  gap: 0.35rem !important;
+  padding: 0.5rem 0.55rem 0.5rem 1rem;
+  background:
+    linear-gradient(180deg, rgba(12, 16, 26, 0.9), rgba(7, 10, 18, 0.82));
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow:
+    0 20px 40px rgba(2, 6, 23, 0.34),
+    inset 0 1px 0 rgba(255,255,255,0.09),
+    inset 0 -1px 0 rgba(255,255,255,0.03);
+  overflow: hidden;
+}
+
+.desktop-nav-glass::before {
+  content: '';
+  position: absolute;
+  left: 0.9rem;
+  right: 7.4rem;
+  top: 0.55rem;
+  height: 54%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08), transparent 78%);
+  filter: blur(12px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.desktop-nav-glass::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 15% 18%, rgba(255,255,255,0.12), transparent 18%),
+    radial-gradient(circle at 82% 50%, rgba(59,130,246,0.16), transparent 12%);
+  pointer-events: none;
+}
+
+.desktop-nav-link {
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  color: rgba(226, 232, 240, 0.82);
+  transition: color 220ms ease, background 220ms ease;
+}
+
+.desktop-nav-link:hover {
+  color: #ffffff;
+  background: rgba(255,255,255,0.04);
+}
+
+.desktop-nav-link::after {
+  display: none;
+}
+
+.desktop-book-btn {
+  padding: 0.88rem 1.7rem !important;
+  border-radius: 18px !important;
+  background: linear-gradient(180deg, #4b88ff, #2f6ef0) !important;
+  box-shadow:
+    0 16px 30px rgba(37, 99, 235, 0.32),
+    inset 0 1px 0 rgba(255,255,255,0.28) !important;
+}
+
+.desktop-book-btn::before {
+  background: linear-gradient(135deg, rgba(255,255,255,0.32), transparent 42%);
+}
+
+.desktop-book-btn:hover {
+  box-shadow:
+    0 18px 36px rgba(37, 99, 235, 0.38),
+    inset 0 1px 0 rgba(255,255,255,0.28) !important;
+}
+
+.mobile-nav {
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(11, 11, 11, 0.92)) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 /* Scrollbar styling */
@@ -53,8 +172,8 @@ body {
 
 /* Service card styles */
 .service-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
   padding: 2rem 1.5rem;
   display: flex;
@@ -68,23 +187,38 @@ body {
   text-decoration: none;
   color: inherit;
   flex: 1;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--glass-shadow);
 }
 
 .service-card::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, transparent 60%);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 24%),
+    linear-gradient(160deg, rgba(59, 130, 246, 0.14) 12%, transparent 62%);
   opacity: 0;
   transition: opacity 300ms ease-in-out;
   border-radius: 12px;
 }
 
+.service-card::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 11px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent 18%, transparent 82%, rgba(255,255,255,0.03));
+  opacity: 0.8;
+  pointer-events: none;
+}
+
 .service-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 30px var(--accent-glow), 0 8px 24px rgba(0,0,0,0.4);
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 0 30px var(--accent-glow), 0 22px 40px rgba(0,0,0,0.35);
   border-color: rgba(59, 130, 246, 0.4);
-  background: var(--bg-card-hover);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.14), rgba(255, 255, 255, 0.05));
 }
 
 .service-card:hover::before {
@@ -96,6 +230,7 @@ body {
   height: 64px;
   border-radius: 16px;
   background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -141,6 +276,17 @@ body {
   transition: transform 300ms ease-in-out, box-shadow 300ms ease-in-out;
   position: relative;
   letter-spacing: 0.02em;
+  box-shadow: 0 16px 36px rgba(37, 99, 235, 0.28);
+  overflow: hidden;
+}
+
+.btn-primary::before,
+.btn-outline::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.24), transparent 32%);
+  pointer-events: none;
 }
 
 .btn-primary:hover {
@@ -149,9 +295,9 @@ body {
 }
 
 .btn-outline {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.04);
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--glass-border);
   border-radius: 10px;
   padding: 0.8rem 2rem;
   font-size: 1rem;
@@ -159,6 +305,10 @@ body {
   cursor: pointer;
   transition: border-color 300ms ease-in-out, background 300ms ease-in-out;
   letter-spacing: 0.02em;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-outline:hover {
@@ -171,8 +321,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.25);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.18), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(147, 197, 253, 0.24);
   border-radius: 50px;
   padding: 0.3rem 1rem;
   font-size: 0.8rem;
@@ -181,6 +331,46 @@ body {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   margin-bottom: 1rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+}
+
+section > div[style*='z-index: 1'][style*='max-width: 780px'] {
+  padding: 2.25rem 2rem;
+  border-radius: 32px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 30px 70px rgba(2, 6, 23, 0.3);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+section > div[style*='z-index: 1'][style*='max-width: 780px'] > * {
+  position: relative;
+}
+
+section > div[style*='z-index: 1'][style*='max-width: 780px']::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.14), transparent 22%),
+    linear-gradient(180deg, transparent 55%, rgba(59,130,246,0.08));
+  pointer-events: none;
+}
+
+section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='display: flex'][style*='gap: 3rem'] > div {
+  min-width: 150px;
+  padding: 1rem 1.15rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 16px 30px rgba(2, 6, 23, 0.2);
 }
 
 /* Nav link hover */
@@ -215,7 +405,7 @@ body {
 
 /* More card specific */
 .more-card {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.04));
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(255, 255, 255, 0.04));
   border: 1px dashed rgba(59, 130, 246, 0.35);
 }
 
@@ -249,14 +439,28 @@ body {
 .booking-modal {
   position: relative;
   width: min(100%, 520px);
-  background: linear-gradient(180deg, rgba(20, 20, 20, 0.98), rgba(11, 11, 11, 0.98));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(17, 25, 40, 0.72), rgba(11, 11, 11, 0.78));
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 22px;
   padding: 1.75rem;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(59, 130, 246, 0.08);
   transform: translateY(24px) scale(0.98);
   opacity: 0;
   transition: transform 250ms ease, opacity 250ms ease;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  overflow: hidden;
+}
+
+.booking-modal::after,
+.worker-registration-card::after,
+.worker-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent 22%);
+  pointer-events: none;
 }
 
 .booking-modal-overlay.open .booking-modal {
@@ -270,9 +474,9 @@ body {
   right: 1rem;
   width: 40px;
   height: 40px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.06);
   color: #ffffff;
   font-size: 1.5rem;
   line-height: 1;
@@ -306,14 +510,16 @@ body {
 .booking-field textarea,
 .booking-field select {
   width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.05);
   color: #ffffff;
   padding: 0.95rem 1rem;
   font: inherit;
   transition: border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
   resize: vertical;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .booking-field input::placeholder,
@@ -346,8 +552,10 @@ body {
   gap: 0.85rem;
   padding: 1rem;
   border-radius: 16px;
-  background: rgba(59, 130, 246, 0.08);
-  border: 1px solid rgba(59, 130, 246, 0.14);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.12), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(147, 197, 253, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .booking-summary p {
@@ -367,11 +575,16 @@ body {
 }
 
 .worker-registration-card {
-  background: linear-gradient(180deg, rgba(20, 20, 20, 0.95), rgba(11, 11, 11, 0.98));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--glass-border);
   border-radius: 20px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  overflow: hidden;
 }
 
 .worker-registration-header {
@@ -399,11 +612,13 @@ body {
   gap: 0.7rem;
   min-height: 52px;
   padding: 0.95rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.05);
   color: #f3f4f6;
   font-weight: 600;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .worker-availability-toggle input {
@@ -413,19 +628,26 @@ body {
 .worker-form-success {
   border-radius: 16px;
   border: 1px solid rgba(34, 197, 94, 0.24);
-  background: rgba(20, 83, 45, 0.22);
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.12), rgba(255, 255, 255, 0.04));
   color: #bbf7d0;
   padding: 0.95rem 1rem;
   text-align: center;
   margin-top: 1rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .worker-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 1.4rem;
   transition: transform 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  overflow: hidden;
 }
 
 .worker-card:hover {
@@ -499,12 +721,14 @@ body {
 .workers-empty-state,
 .workers-feedback {
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.05);
   color: #d1d5db;
   padding: 1rem 1.15rem;
   text-align: center;
   margin-bottom: 1.25rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .workers-feedback {
@@ -546,6 +770,15 @@ body {
 }
 
 @media (max-width: 640px) {
+  section > div[style*='z-index: 1'][style*='max-width: 780px'] {
+    padding: 1.5rem 1.1rem;
+    border-radius: 24px;
+  }
+
+  section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='display: flex'][style*='gap: 3rem'] > div {
+    min-width: 100%;
+  }
+
   .booking-modal {
     padding: 1.35rem;
     border-radius: 18px;

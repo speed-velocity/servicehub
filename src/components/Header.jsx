@@ -69,15 +69,15 @@ const Header = ({ onBookNow }) => {
             alignItems: 'center',
             gap: '2.5rem',
           }}
-          className="desktop-nav"
+          className="desktop-nav desktop-nav-glass"
         >
           {navLinks.map((link) => (
-            <a key={link} href="#" className="nav-link">
+            <a key={link} href="#" className="nav-link desktop-nav-link">
               {link}
             </a>
           ))}
           <button
-            className="btn-primary"
+            className="btn-primary desktop-book-btn"
             style={{ padding: '0.6rem 1.5rem', fontSize: '0.9rem' }}
             onClick={onBookNow}
           >
