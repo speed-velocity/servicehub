@@ -9,6 +9,65 @@ const authModes = [
   { id: 'worker-login', label: 'Worker Login', type: 'worker' },
 ];
 
+const modeContent = {
+  user: {
+    register: {
+      badge: 'User Signup',
+      title: 'Create new account.',
+      description: 'Unlock instant booking, saved sessions, and a smoother return experience on every visit.',
+      switchCopy: 'Already a member?',
+      switchLabel: 'Log in',
+      alternateMode: 'user-login',
+      showcaseBadge: 'Join For Free',
+      showcaseTitle: 'Book trusted home services with one secure customer account.',
+      showcaseCopy:
+        'Keep your bookings, access, and future service flow under one polished, secure workspace.',
+      showcasePoints: ['Instant booking access', 'Safer customer sessions', 'Future-ready account flow'],
+    },
+    login: {
+      badge: 'User Login',
+      title: 'Welcome back.',
+      description: 'Sign in to continue booking services with your saved account and protected access.',
+      switchCopy: 'Need an account?',
+      switchLabel: 'Register',
+      alternateMode: 'user-register',
+      showcaseBadge: 'Secure Return',
+      showcaseTitle: 'Jump back in and continue booking without starting from scratch.',
+      showcaseCopy:
+        'One login gets you back into your account so you can access services faster and with less friction.',
+      showcasePoints: ['Fast secure sign in', 'Booking-first experience', 'Ready for saved history'],
+    },
+  },
+  worker: {
+    register: {
+      badge: 'Worker Signup',
+      title: 'Create worker account.',
+      description: 'Register your worker profile with secure credentials and start managing live availability.',
+      switchCopy: 'Already registered?',
+      switchLabel: 'Log in',
+      alternateMode: 'worker-login',
+      showcaseBadge: 'Worker Access',
+      showcaseTitle: 'Join the live worker network and manage status professionally.',
+      showcaseCopy:
+        'Create your worker identity once, then control availability, live location, and service visibility from one place.',
+      showcasePoints: ['Real-time worker status', 'Secure worker credentials', 'Live location controls'],
+    },
+    login: {
+      badge: 'Worker Login',
+      title: 'Worker sign in.',
+      description: 'Log in to go available, share current location, and control your live worker presence.',
+      switchCopy: 'New worker here?',
+      switchLabel: 'Register',
+      alternateMode: 'worker-register',
+      showcaseBadge: 'Go Live',
+      showcaseTitle: 'Sign in to control live availability and stay visible to active users.',
+      showcaseCopy:
+        'Keep your worker profile updated, switch online status, and manage your service presence cleanly.',
+      showcasePoints: ['Go available instantly', 'Live visibility controls', 'Secure worker dashboard'],
+    },
+  },
+};
+
 const createUserForm = () => ({
   email: '',
   password: '',
@@ -135,6 +194,7 @@ const AuthHubPage = ({
   );
   const activeType = currentMode.type;
   const activeAction = currentMode.id.includes('login') ? 'login' : 'register';
+  const content = modeContent[activeType][activeAction];
 
   const workerSummary = useMemo(() => {
     if (!sessionWorker) {
@@ -164,6 +224,10 @@ const AuthHubPage = ({
 
   const switchAction = (nextAction) => {
     setActiveMode(`${activeType}-${nextAction}`);
+  };
+
+  const switchAlternateMode = () => {
+    setActiveMode(content.alternateMode);
   };
 
   const handleUserChange = (setter, errorSetter) => (event) => {
@@ -394,14 +458,12 @@ const AuthHubPage = ({
   };
 
   const renderUserRegister = () => (
-    <section className="portal-panel-card">
-      <div className="section-badge" style={{ marginBottom: '0.9rem' }}>
-        User Signup
+    <section className="portal-panel-card auth-form-panel">
+      <div className="auth-form-header">
+        <div className="section-badge">{content.badge}</div>
+        <h2 className="auth-form-title">{content.title}</h2>
+        <p className="portal-inline-copy">{content.description}</p>
       </div>
-      <h2 className="portal-panel-title">Create your user account</h2>
-      <p className="portal-inline-copy">
-        Register with email and password, then return anytime to continue booking from the same account.
-      </p>
 
       <form className="portal-form-grid" onSubmit={handleUserRegisterSubmit}>
         <label className="booking-field">
@@ -430,9 +492,16 @@ const AuthHubPage = ({
         />
 
         <button type="submit" className="btn-primary portal-submit" disabled={isRegisteringUser}>
-          {isRegisteringUser ? 'Creating Account...' : 'Create User Account'}
+          {isRegisteringUser ? 'Creating Account...' : 'Create Account'}
         </button>
       </form>
+
+      <div className="auth-form-switch">
+        <span>{content.switchCopy}</span>
+        <button type="button" className="auth-inline-link" onClick={switchAlternateMode}>
+          {content.switchLabel}
+        </button>
+      </div>
 
       {userRegistrationError ? (
         <div className="workers-feedback" role="alert" style={{ marginBottom: 0 }}>
@@ -443,14 +512,12 @@ const AuthHubPage = ({
   );
 
   const renderUserLogin = () => (
-    <section className="portal-panel-card">
-      <div className="section-badge" style={{ marginBottom: '0.9rem' }}>
-        User Login
+    <section className="portal-panel-card auth-form-panel">
+      <div className="auth-form-header">
+        <div className="section-badge">{content.badge}</div>
+        <h2 className="auth-form-title">{content.title}</h2>
+        <p className="portal-inline-copy">{content.description}</p>
       </div>
-      <h2 className="portal-panel-title">Sign in to your user account</h2>
-      <p className="portal-inline-copy">
-        Existing users can log in here with the same email and password used during signup.
-      </p>
 
       <form className="portal-form-grid" onSubmit={handleUserLoginSubmit}>
         <label className="booking-field">
@@ -483,6 +550,13 @@ const AuthHubPage = ({
         </button>
       </form>
 
+      <div className="auth-form-switch">
+        <span>{content.switchCopy}</span>
+        <button type="button" className="auth-inline-link" onClick={switchAlternateMode}>
+          {content.switchLabel}
+        </button>
+      </div>
+
       {userLoginError ? (
         <div className="workers-feedback" role="alert" style={{ marginBottom: 0 }}>
           {userLoginError}
@@ -492,14 +566,12 @@ const AuthHubPage = ({
   );
 
   const renderWorkerRegister = () => (
-    <section className="portal-panel-card">
-      <div className="section-badge" style={{ marginBottom: '0.9rem' }}>
-        Worker Signup
+    <section className="portal-panel-card auth-form-panel">
+      <div className="auth-form-header">
+        <div className="section-badge">{content.badge}</div>
+        <h2 className="auth-form-title">{content.title}</h2>
+        <p className="portal-inline-copy">{content.description}</p>
       </div>
-      <h2 className="portal-panel-title">Create a worker account</h2>
-      <p className="portal-inline-copy">
-        Register once with email and password, then sign in anytime to control live availability and location.
-      </p>
 
       <form className="portal-form-grid" onSubmit={handleWorkerRegisterSubmit}>
         <label className="booking-field">
@@ -592,6 +664,13 @@ const AuthHubPage = ({
         </button>
       </form>
 
+      <div className="auth-form-switch">
+        <span>{content.switchCopy}</span>
+        <button type="button" className="auth-inline-link" onClick={switchAlternateMode}>
+          {content.switchLabel}
+        </button>
+      </div>
+
       {workerRegisterSuccess ? (
         <div className="worker-form-success" role="status">
           {workerRegisterSuccess}
@@ -607,14 +686,12 @@ const AuthHubPage = ({
   );
 
   const renderWorkerLogin = () => (
-    <section className="portal-panel-card">
-      <div className="section-badge" style={{ marginBottom: '0.9rem' }}>
-        Worker Login
+    <section className="portal-panel-card auth-form-panel">
+      <div className="auth-form-header">
+        <div className="section-badge">{content.badge}</div>
+        <h2 className="auth-form-title">{content.title}</h2>
+        <p className="portal-inline-copy">{content.description}</p>
       </div>
-      <h2 className="portal-panel-title">Sign in with your worker account</h2>
-      <p className="portal-inline-copy">
-        Use your registered email and password to go online, share live location, and update availability.
-      </p>
 
       <form className="portal-form-grid" onSubmit={handleWorkerLoginSubmit}>
         <label className="booking-field">
@@ -646,6 +723,13 @@ const AuthHubPage = ({
           {isLoggingInWorker ? 'Signing In...' : 'Login Worker'}
         </button>
       </form>
+
+      <div className="auth-form-switch">
+        <span>{content.switchCopy}</span>
+        <button type="button" className="auth-inline-link" onClick={switchAlternateMode}>
+          {content.switchLabel}
+        </button>
+      </div>
 
       {workerLoginError ? (
         <div className="workers-feedback" role="alert" style={{ marginBottom: 0 }}>
@@ -681,12 +765,10 @@ const AuthHubPage = ({
 
     if (currentMode.type === 'user' && userSession) {
       return (
-        <section className="portal-panel-card portal-stack">
-          <div>
-            <div className="section-badge" style={{ marginBottom: '0.9rem' }}>
-              Signed In
-            </div>
-            <h2 className="portal-panel-title">{userSession.email}</h2>
+        <section className="portal-panel-card portal-stack auth-form-panel">
+          <div className="auth-form-header">
+            <div className="section-badge">Signed In</div>
+            <h2 className="auth-form-title">{userSession.email}</h2>
             <p className="portal-inline-copy">
               Your account is active on this device. You can return to the home page and continue booking anytime.
             </p>
@@ -707,10 +789,10 @@ const AuthHubPage = ({
     return null;
   };
 
-  const renderActivePanel = () => {
+  const renderFormPanel = () => {
     if (showWorkerSessionLoading) {
       return (
-        <section className="portal-panel-card">
+        <section className="portal-panel-card auth-form-panel">
           <p className="portal-inline-copy">Loading your worker profile...</p>
         </section>
       );
@@ -743,53 +825,109 @@ const AuthHubPage = ({
         </section>
       ) : null}
 
-      <section className="auth-switchboard" aria-label="Auth mode selection">
-        <div className="auth-switchboard-copy">
-          <div className="section-badge">Secure Access</div>
-          <h1 className="auth-switchboard-title">
-            {activeType === 'user' ? 'User Account Access' : 'Worker Portal Access'}
-          </h1>
-          <p className="auth-switchboard-text">
-            {activeType === 'user'
-              ? activeAction === 'register'
-                ? 'Create your customer account to unlock bookings and manage future activity.'
-                : 'Sign in to continue booking services with your saved account.'
-              : activeAction === 'register'
-                ? 'Create a worker profile with secure credentials and start managing availability.'
-                : 'Sign in to control live status, current location, and worker activity.'}
-          </p>
-        </div>
+      <section className="auth-experience-shell">
+        <aside className="auth-showcase-panel">
+          <div className="auth-showcase-sheen" />
+          <div className="auth-showcase-content">
+            <div className="auth-showcase-header">
+              <div className="section-badge">{content.showcaseBadge}</div>
+              <div className="auth-showcase-mini-pill">Liquid Access</div>
+            </div>
 
-        <div className="auth-switchboard-controls">
-          <div className="auth-segment" role="tablist" aria-label="Account type">
-            {['user', 'worker'].map((type) => (
-              <button
-                key={type}
-                type="button"
-                className={`auth-segment-chip${activeType === type ? ' is-active' : ''}`}
-                onClick={() => switchType(type)}
-              >
-                {type === 'user' ? 'User Access' : 'Worker Access'}
-              </button>
-            ))}
-          </div>
+            <div className="auth-showcase-copyblock">
+              <p className="auth-showcase-kicker">ServiceHub Access</p>
+              <h1 className="auth-showcase-title">{content.showcaseTitle}</h1>
+              <p className="auth-showcase-copy">{content.showcaseCopy}</p>
+            </div>
 
-          <div className="auth-segment auth-segment-secondary" role="tablist" aria-label="Auth action">
-            {['register', 'login'].map((action) => (
-              <button
-                key={action}
-                type="button"
-                className={`auth-segment-chip${activeAction === action ? ' is-active' : ''}`}
-                onClick={() => switchAction(action)}
-              >
-                {action === 'register' ? 'Register' : 'Login'}
+            <div className="auth-showcase-glasscard">
+              <p className="auth-showcase-glasslabel">
+                {activeType === 'user' ? 'Customer Workspace' : 'Worker Workspace'}
+              </p>
+              <h3 className="auth-showcase-glassheading">
+                {activeType === 'user'
+                  ? activeAction === 'register'
+                    ? 'Create your account and unlock bookings faster.'
+                    : 'Resume securely and book in a few taps.'
+                  : activeAction === 'register'
+                    ? 'Create your worker identity and go live professionally.'
+                    : 'Sign in to manage availability and current location.'}
+              </h3>
+            </div>
+
+            <div className="auth-showcase-points">
+              {content.showcasePoints.map((point) => (
+                <div key={point} className="auth-showcase-point">
+                  <span className="auth-showcase-point-dot" />
+                  <span>{point}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="auth-showcase-actions">
+              <a href="/" className="btn-outline auth-showcase-link">
+                Explore Home
+              </a>
+              <button type="button" className="btn-primary" onClick={switchAlternateMode}>
+                {content.switchLabel}
               </button>
-            ))}
+            </div>
           </div>
-        </div>
+        </aside>
+
+        <section className="auth-workspace">
+          <div className="auth-workspace-ambient" />
+          <div className="auth-workspace-inner">
+            <div className="auth-switchboard">
+              <div className="auth-switchboard-copy">
+                <div className="section-badge">Secure Access</div>
+                <h2 className="auth-switchboard-title">
+                  {activeType === 'user' ? 'User Account Access' : 'Worker Portal Access'}
+                </h2>
+                <p className="auth-switchboard-text">
+                  {activeType === 'user'
+                    ? activeAction === 'register'
+                      ? 'Create your customer account to unlock bookings and manage future activity.'
+                      : 'Sign in to continue booking services with your saved account.'
+                    : activeAction === 'register'
+                      ? 'Create a worker profile with secure credentials and start managing availability.'
+                      : 'Sign in to control live status, current location, and worker activity.'}
+                </p>
+              </div>
+
+              <div className="auth-switchboard-controls">
+                <div className="auth-segment" role="tablist" aria-label="Account type">
+                  {['user', 'worker'].map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      className={`auth-segment-chip${activeType === type ? ' is-active' : ''}`}
+                      onClick={() => switchType(type)}
+                    >
+                      {type === 'user' ? 'User Access' : 'Worker Access'}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="auth-segment auth-segment-secondary" role="tablist" aria-label="Auth action">
+                  {['register', 'login'].map((action) => (
+                    <button
+                      key={action}
+                      type="button"
+                      className={`auth-segment-chip${activeAction === action ? ' is-active' : ''}`}
+                      onClick={() => switchAction(action)}
+                    >
+                      {action === 'register' ? 'Register' : 'Login'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {renderFormPanel()}
+          </div>
+        </section>
       </section>
-
-      {renderActivePanel()}
     </main>
   );
 };
