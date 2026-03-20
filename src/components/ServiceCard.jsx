@@ -1,14 +1,15 @@
 import React from 'react';
 
-const ServiceCard = ({ icon, title, isMore = false, onClick, isExpanded = false }) => {
+const ServiceCard = ({ icon, title, isMore = false, isLocked = false, onClick, isExpanded = false }) => {
   const isInteractive = Boolean(onClick);
 
   return (
     <div
-      className={`service-card ${isMore ? 'more-card' : ''}`}
+      className={`service-card ${isMore ? 'more-card' : ''}${isLocked && !isMore ? ' service-card-locked' : ''}`}
       onClick={onClick}
       role={isInteractive ? 'button' : undefined}
       aria-expanded={isMore ? isExpanded : undefined}
+      aria-label={isLocked && !isMore ? `${title} service requires login` : undefined}
       tabIndex={isInteractive ? 0 : undefined}
       onKeyDown={
         isInteractive
@@ -52,6 +53,11 @@ const ServiceCard = ({ icon, title, isMore = false, onClick, isExpanded = false 
         >
           {title}
         </span>
+        {isLocked && !isMore ? (
+          <p style={{ fontSize: '0.75rem', color: '#93c5fd', marginTop: '0.25rem', fontWeight: '500' }}>
+            Login required
+          </p>
+        ) : null}
         {isMore && (
           <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem', fontWeight: '400' }}>
             {isExpanded ? 'Show less' : 'View all'}

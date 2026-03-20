@@ -21,6 +21,7 @@ const emptyForm = {
 
 const workerSessionStorageKey = 'servicehub_worker_session';
 const userSessionStorageKey = 'servicehub_user_session';
+const authIntentStorageKey = 'servicehub_auth_intent';
 
 const normalizeText = (value) =>
   value
@@ -146,6 +147,11 @@ function App() {
   const watchIdRef = useRef(null);
   const lastSentLocationRef = useRef(null);
   const hasActiveSession = Boolean(userSession || workerSession);
+  const hasUserSession = Boolean(userSession);
+  const authIntent =
+    route === '/signup' || route === '/account' || route === '/worker'
+      ? window.sessionStorage.getItem(authIntentStorageKey) || ''
+      : '';
 
   useEffect(() => {
     setWorkersLoading(true);
@@ -346,6 +352,11 @@ function App() {
     setIsBookingOpen(true);
   };
 
+  const redirectToBookingAuth = () => {
+    window.sessionStorage.setItem(authIntentStorageKey, 'booking');
+    navigateToSignup();
+  };
+
   const closeBooking = () => {
     setIsBookingOpen(false);
     setFormErrors({});
@@ -356,6 +367,11 @@ function App() {
   };
 
   const handleServiceSelect = (service) => {
+    if (!hasUserSession) {
+      redirectToBookingAuth();
+      return;
+    }
+
     openBooking(service);
   };
 
@@ -580,6 +596,7 @@ function App() {
 
     try {
       const user = await registerUserAccount({ email, password });
+      window.sessionStorage.removeItem(authIntentStorageKey);
       setUserSession(user);
       return user;
     } catch (error) {
@@ -597,6 +614,7 @@ function App() {
 
     try {
       const user = await loginUserAccount({ email, password });
+      window.sessionStorage.removeItem(authIntentStorageKey);
       setUserSession(user);
       return user;
     } catch (error) {
@@ -636,12 +654,19 @@ function App() {
 
   if (route === '/worker' || route === '/account' || route === '/signup') {
     const initialMode =
-      route === '/worker' ? 'worker-register' : route === '/account' ? 'user-register' : 'user-register';
+      authIntent === 'booking'
+        ? 'user-login'
+        : route === '/worker'
+          ? 'worker-register'
+          : 'user-register';
 
     return (
       <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
         <PortalHeader activePath="/signup" />
         <AuthHubPage
+          authPrompt={
+            authIntent === 'booking' ? 'Please login or register first before booking any service.' : ''
+          }
           initialMode={initialMode}
           userSession={userSession}
           workerSession={workerSession}
@@ -675,14 +700,28 @@ function App() {
       <Header
         authActionLabel={hasActiveSession ? 'Logout' : 'Sign Up / Login'}
         onAuthAction={handleHeaderAuthAction}
-        onBookNow={() => openBooking()}
+        onBookNow={() => {
+          if (!hasUserSession) {
+            redirectToBookingAuth();
+            return;
+          }
+
+          openBooking();
+        }}
       />
       <main>
         <Hero
-          onBookNow={() => openBooking()}
+          onBookNow={() => {
+            if (!hasUserSession) {
+              redirectToBookingAuth();
+              return;
+            }
+
+            openBooking();
+          }}
           onExploreServices={handleExploreServices}
         />
-        <ServicesSection onServiceSelect={handleServiceSelect} />
+        <ServicesSection isLocked={!hasUserSession} onServiceSelect={handleServiceSelect} />
         <AboutSection />
       </main>
       <Footer />

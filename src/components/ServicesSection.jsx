@@ -61,7 +61,7 @@ const hiddenServices = [
   { id: 'technician', title: 'Technician', iconKey: 'technician' },
 ];
 
-const ServicesSection = ({ onServiceSelect }) => {
+const ServicesSection = ({ isLocked = false, onServiceSelect }) => {
   const [expanded, setExpanded] = useState(false);
   const hiddenRef = useRef(null);
 
@@ -114,6 +114,7 @@ const ServicesSection = ({ onServiceSelect }) => {
             key={service.id}
             title={service.title}
             icon={icons[service.iconKey]}
+            isLocked={isLocked}
             onClick={() => onServiceSelect?.(service.title)}
           />
         ))}
@@ -166,6 +167,7 @@ const ServicesSection = ({ onServiceSelect }) => {
                 key={service.id}
                 title={service.title}
                 icon={icons[service.iconKey]}
+                isLocked={isLocked}
                 onClick={() => onServiceSelect?.(service.title)}
               />
             ))}

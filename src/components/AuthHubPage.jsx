@@ -84,6 +84,7 @@ const PasswordField = ({
 );
 
 const AuthHubPage = ({
+  authPrompt,
   initialMode,
   userSession,
   workerSession,
@@ -726,6 +727,12 @@ const AuthHubPage = ({
 
   return (
     <main className="portal-page">
+      {authPrompt ? (
+        <section className="portal-auth-prompt" role="alert">
+          {authPrompt}
+        </section>
+      ) : null}
+
       <section className="portal-mode-switcher" aria-label="Auth mode selection">
         {authModes.map((mode) => (
           <button
