@@ -1,24 +1,37 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const Header = ({ onBookNow }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const navLinks = ['Home', 'Services', 'About', 'Contact'];
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 12);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   return (
     <header
+      className={`site-header${isScrolled ? ' is-scrolled' : ''}`}
       style={{
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
         zIndex: 100,
-        backgroundColor: 'rgba(11, 11, 11, 0.85)',
-        backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
       }}
     >
       <div
+        className="site-header-inner"
         style={{
           maxWidth: '1200px',
           margin: '0 auto',
@@ -69,7 +82,7 @@ const Header = ({ onBookNow }) => {
             alignItems: 'center',
             gap: '2.5rem',
           }}
-          className="desktop-nav desktop-nav-glass"
+          className={`desktop-nav desktop-nav-glass${isScrolled ? ' is-scrolled' : ''}`}
         >
           {navLinks.map((link) => (
             <a key={link} href="#" className="nav-link desktop-nav-link">
@@ -124,7 +137,7 @@ const Header = ({ onBookNow }) => {
             gap: '0.75rem',
             backgroundColor: 'rgba(11,11,11,0.96)',
           }}
-          className="mobile-nav"
+          className={`mobile-nav${isScrolled ? ' is-scrolled' : ''}`}
         >
           {navLinks.map((link) => (
             <a

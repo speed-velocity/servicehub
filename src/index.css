@@ -46,11 +46,34 @@ body::before {
   z-index: -1;
 }
 
-header {
-  background:
-    linear-gradient(180deg, rgba(15, 23, 42, 0.76), rgba(11, 11, 11, 0.74)) !important;
-  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-  box-shadow: 0 16px 44px rgba(2, 6, 23, 0.28);
+.site-header {
+  background: transparent;
+  transition: background 240ms ease, box-shadow 240ms ease;
+}
+
+.site-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(9, 14, 24, 0.2), rgba(9, 14, 24, 0));
+  opacity: 0.7;
+  pointer-events: none;
+  transition: opacity 240ms ease, backdrop-filter 240ms ease, background 240ms ease;
+}
+
+.site-header.is-scrolled::before {
+  background: linear-gradient(180deg, rgba(9, 14, 24, 0.52), rgba(9, 14, 24, 0.18));
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  opacity: 1;
+}
+
+.site-header-inner {
+  position: relative;
+  z-index: 1;
 }
 
 .desktop-nav {
@@ -68,13 +91,16 @@ header {
   gap: 0.35rem !important;
   padding: 0.5rem 0.55rem 0.5rem 1rem;
   background:
-    linear-gradient(180deg, rgba(12, 16, 26, 0.9), rgba(7, 10, 18, 0.82));
+    linear-gradient(180deg, rgba(18, 24, 36, 0.58), rgba(10, 12, 20, 0.48));
   border: 1px solid rgba(255,255,255,0.1);
   box-shadow:
-    0 20px 40px rgba(2, 6, 23, 0.34),
+    0 20px 40px rgba(2, 6, 23, 0.18),
     inset 0 1px 0 rgba(255,255,255,0.09),
     inset 0 -1px 0 rgba(255,255,255,0.03);
   overflow: hidden;
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  transition: background 240ms ease, box-shadow 240ms ease, transform 240ms ease;
 }
 
 .desktop-nav-glass::before {
@@ -100,6 +126,16 @@ header {
     radial-gradient(circle at 15% 18%, rgba(255,255,255,0.12), transparent 18%),
     radial-gradient(circle at 82% 50%, rgba(59,130,246,0.16), transparent 12%);
   pointer-events: none;
+}
+
+.desktop-nav-glass.is-scrolled {
+  background:
+    linear-gradient(180deg, rgba(18, 24, 36, 0.76), rgba(10, 12, 20, 0.62));
+  box-shadow:
+    0 22px 44px rgba(2, 6, 23, 0.3),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    inset 0 -1px 0 rgba(255,255,255,0.04);
+  transform: translateY(2px);
 }
 
 .desktop-nav-link {
@@ -142,6 +178,11 @@ header {
     linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(11, 11, 11, 0.92)) !important;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+}
+
+.mobile-nav.is-scrolled {
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
 }
 
 /* Scrollbar styling */
