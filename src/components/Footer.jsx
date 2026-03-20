@@ -21,7 +21,6 @@ const Footer = () => {
             marginBottom: '2rem',
           }}
         >
-          {/* Brand */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <div
               style={{
@@ -53,7 +52,6 @@ const Footer = () => {
             </span>
           </div>
 
-          {/* Links */}
           <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
             {['Privacy Policy', 'Terms of Service', 'Support'].map((link) => (
               <a
@@ -65,8 +63,12 @@ const Footer = () => {
                   fontSize: '0.85rem',
                   transition: 'color 200ms ease',
                 }}
-                onMouseEnter={(e) => (e.target.style.color = '#9ca3af')}
-                onMouseLeave={(e) => (e.target.style.color = '#6b7280')}
+                onMouseEnter={(event) => {
+                  event.target.style.color = '#9ca3af';
+                }}
+                onMouseLeave={(event) => {
+                  event.target.style.color = '#6b7280';
+                }}
               >
                 {link}
               </a>
@@ -74,8 +76,35 @@ const Footer = () => {
           </div>
         </div>
 
+        <div
+          style={{
+            marginBottom: '1.5rem',
+            padding: '1rem 1.25rem',
+            borderRadius: '18px',
+            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'rgba(255,255,255,0.04)',
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+          }}
+        >
+          <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.35rem', letterSpacing: '0.02em' }}>
+            Contact
+          </p>
+          <a
+            href="mailto:panditshubhankar78@gmail.com"
+            style={{
+              color: '#dbeafe',
+              textDecoration: 'none',
+              fontSize: '0.95rem',
+              fontWeight: '600',
+            }}
+          >
+            panditshubhankar78@gmail.com
+          </a>
+        </div>
+
         <p style={{ color: '#4b5563', fontSize: '0.82rem' }}>
-          © {new Date().getFullYear()} ServiceHub. All rights reserved. Built with ❤️ for your home.
+          &copy; {new Date().getFullYear()} ServiceHub. All rights reserved. Built with care for your home.
         </p>
       </div>
     </footer>
