@@ -195,7 +195,6 @@ function App() {
           onExploreServices={handleExploreServices}
         />
         <ServicesSection onServiceSelect={handleServiceSelect} />
-        <AboutSection />
         <WorkersSection
           selectedService={selectedService}
           workers={filteredWorkers}
@@ -208,6 +207,7 @@ function App() {
           onRegisterWorker={handleRegisterWorker}
           onToggleAvailability={handleToggleWorkerAvailability}
         />
+        <AboutSection />
       </main>
       <Footer />
       <BookingModal
