@@ -23,6 +23,7 @@ const emptyForm = {
 function App() {
   const [selectedService, setSelectedService] = useState('');
   const [bookingService, setBookingService] = useState('');
+  const [bookingLocation, setBookingLocation] = useState(null);
   const [showBookingServiceSelect, setShowBookingServiceSelect] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingForm, setBookingForm] = useState(emptyForm);
@@ -80,6 +81,7 @@ function App() {
 
   const openBooking = (service = '') => {
     setBookingService(service);
+    setBookingLocation(null);
     setShowBookingServiceSelect(!service);
     setFormErrors({});
     setConfirmedBooking(null);
@@ -90,6 +92,7 @@ function App() {
     setIsBookingOpen(false);
     setFormErrors({});
     setBookingService('');
+    setBookingLocation(null);
     setShowBookingServiceSelect(false);
   };
 
@@ -172,8 +175,30 @@ function App() {
       service: trimmedService,
     });
     setBookingService('');
+    setBookingLocation(null);
     setBookingForm(emptyForm);
     setFormErrors({});
+  };
+
+  const handleMapLocationSelect = ({ lat, lng }) => {
+    const nextAddress = `Pinned from India map: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+    setBookingLocation({ lat, lng });
+    setBookingForm((currentForm) => ({
+      ...currentForm,
+      address: nextAddress,
+    }));
+
+    setFormErrors((currentErrors) => {
+      if (!currentErrors.address) {
+        return currentErrors;
+      }
+
+      return {
+        ...currentErrors,
+        address: '',
+      };
+    });
   };
 
   const handleExploreServices = () => {
@@ -244,8 +269,10 @@ function App() {
         formData={bookingForm}
         formErrors={formErrors}
         confirmedBooking={confirmedBooking}
+        selectedLocation={bookingLocation}
         onClose={closeBooking}
         onChange={handleInputChange}
+        onLocationPick={handleMapLocationSelect}
         onSubmit={handleSubmit}
       />
     </div>

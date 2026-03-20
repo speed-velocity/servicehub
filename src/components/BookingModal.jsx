@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import IndiaLocationPicker from './IndiaLocationPicker';
 
 const BookingModal = ({
   isOpen,
@@ -8,11 +9,19 @@ const BookingModal = ({
   formData,
   formErrors,
   confirmedBooking,
+  selectedLocation,
   onClose,
   onChange,
+  onLocationPick,
   onSubmit,
 }) => {
   const firstInputRef = useRef(null);
+  const [showMapPicker, setShowMapPicker] = useState(false);
+
+  const handleClose = () => {
+    setShowMapPicker(false);
+    onClose();
+  };
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -23,6 +32,7 @@ const BookingModal = ({
 
     const handleEscape = (event) => {
       if (event.key === 'Escape' && isOpen) {
+        setShowMapPicker(false);
         onClose();
       }
     };
@@ -45,7 +55,7 @@ const BookingModal = ({
     <div
       className={`booking-modal-overlay${isOpen ? ' open' : ''}`}
       aria-hidden={!isOpen}
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className="booking-modal"
@@ -58,7 +68,7 @@ const BookingModal = ({
           type="button"
           className="booking-modal-close"
           aria-label="Close booking form"
-          onClick={onClose}
+          onClick={handleClose}
         >
           &times;
         </button>
@@ -93,7 +103,7 @@ const BookingModal = ({
               type="button"
               className="btn-primary"
               style={{ width: '100%', marginTop: '1.5rem' }}
-              onClick={onClose}
+              onClick={handleClose}
             >
               Close
             </button>
@@ -174,7 +184,16 @@ const BookingModal = ({
               </label>
 
               <label className="booking-field">
-                <span>Address</span>
+                <div className="booking-field-top">
+                  <span>Address</span>
+                  <button
+                    type="button"
+                    className="booking-map-toggle"
+                    onClick={() => setShowMapPicker((currentValue) => !currentValue)}
+                  >
+                    {showMapPicker ? 'Hide India Map' : 'Choose from India Map'}
+                  </button>
+                </div>
                 <textarea
                   name="address"
                   value={formData.address}
@@ -183,6 +202,12 @@ const BookingModal = ({
                   placeholder="Enter your service address"
                   rows="4"
                 />
+                {showMapPicker ? (
+                  <IndiaLocationPicker
+                    selectedLocation={selectedLocation}
+                    onPick={onLocationPick}
+                  />
+                ) : null}
                 {formErrors.address && <small>{formErrors.address}</small>}
               </label>
 
