@@ -57,8 +57,7 @@ const Footer = () => {
               { label: 'Privacy Policy', href: '#' },
               { label: 'Terms of Service', href: '#' },
               { label: 'Support', href: '#' },
-              { label: 'User Account', href: '/account' },
-              { label: 'Worker Portal', href: '/worker' },
+              { label: 'Sign Up / Login', href: '/signup' },
             ].map((link) => (
               <a
                 key={link.label}

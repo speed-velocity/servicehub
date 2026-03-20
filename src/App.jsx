@@ -6,8 +6,7 @@ import AboutSection from './components/AboutSection';
 import Footer from './components/Footer';
 import BookingModal from './components/BookingModal';
 import PortalHeader from './components/PortalHeader';
-import WorkerPortalPage from './components/WorkerPortalPage';
-import UserAuthPage from './components/UserAuthPage';
+import AuthHubPage from './components/AuthHubPage';
 import './index.css';
 import { serviceOptions } from './constants/services';
 import { reverseGeocodeLocation } from './services/geocoding';
@@ -83,6 +82,10 @@ const getInitialRoute = () => {
 
   if (path === '/account') {
     return '/account';
+  }
+
+  if (path === '/signup') {
+    return '/signup';
   }
 
   return '/';
@@ -601,40 +604,33 @@ function App() {
     setUserRegistrationError('');
   };
 
-  if (route === '/worker') {
+  if (route === '/worker' || route === '/account' || route === '/signup') {
+    const initialMode =
+      route === '/worker' ? 'worker-register' : route === '/account' ? 'user-register' : 'user-register';
+
     return (
       <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
-        <PortalHeader activePath="/worker" />
-        <WorkerPortalPage
-          sessionWorker={sessionWorker}
+        <PortalHeader activePath="/signup" />
+        <AuthHubPage
+          initialMode={initialMode}
+          userSession={userSession}
           workerSession={workerSession}
+          sessionWorker={sessionWorker}
           workersLoading={workersLoading}
           isRegisteringWorker={isRegisteringWorker}
           isLoggingInWorker={isLoggingInWorker}
           isUpdatingAvailability={workerActionId === sessionWorker?.id}
-          registrationError={workerRegistrationError || workersError}
-          loginError={workerLoginError}
+          workerRegistrationError={workerRegistrationError || workersError}
+          workerLoginError={workerLoginError}
+          isRegisteringUser={isRegisteringUser}
+          isLoggingInUser={isLoggingInUser}
+          userRegistrationError={userRegistrationError}
+          userLoginError={userLoginError}
           locationShareState={locationShareState}
           onRegisterWorker={handleRegisterWorker}
           onLoginWorker={handleLoginWorker}
           onLogoutWorker={handleLogoutWorker}
           onToggleAvailability={handleToggleWorkerAvailability}
-        />
-        <Footer />
-      </div>
-    );
-  }
-
-  if (route === '/account') {
-    return (
-      <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
-        <PortalHeader activePath="/account" />
-        <UserAuthPage
-          userSession={userSession}
-          isRegisteringUser={isRegisteringUser}
-          isLoggingInUser={isLoggingInUser}
-          userRegistrationError={userRegistrationError}
-          userLoginError={userLoginError}
           onRegisterUser={handleRegisterUser}
           onLoginUser={handleLoginUser}
           onLogoutUser={handleLogoutUser}

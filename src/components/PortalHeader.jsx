@@ -2,8 +2,7 @@ import React from 'react';
 
 const portalLinks = [
   { href: '/', label: 'Home' },
-  { href: '/account', label: 'User Account' },
-  { href: '/worker', label: 'Worker Portal' },
+  { href: '/signup', label: 'Sign Up / Login' },
 ];
 
 const PortalHeader = ({ activePath }) => {

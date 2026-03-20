@@ -1,0 +1,692 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { serviceOptions } from '../constants/services';
+import WorkerSessionPanel from './WorkerSessionPanel';
+
+const authModes = [
+  { id: 'user-register', label: 'User Register', type: 'user', action: 'register' },
+  { id: 'user-login', label: 'User Login', type: 'user', action: 'login' },
+  { id: 'worker-register', label: 'Worker Register', type: 'worker', action: 'register' },
+  { id: 'worker-login', label: 'Worker Login', type: 'worker', action: 'login' },
+];
+
+const createUserForm = () => ({
+  email: '',
+  password: '',
+});
+
+const createWorkerRegisterForm = () => ({
+  name: '',
+  email: '',
+  password: '',
+  phone: '',
+  service: serviceOptions[0],
+  location: '',
+  available: true,
+});
+
+const createWorkerLoginForm = () => ({
+  email: '',
+  password: '',
+});
+
+const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+const AuthHubPage = ({
+  initialMode,
+  userSession,
+  workerSession,
+  sessionWorker,
+  workersLoading,
+  isRegisteringWorker,
+  isLoggingInWorker,
+  isUpdatingAvailability,
+  workerRegistrationError,
+  workerLoginError,
+  isRegisteringUser,
+  isLoggingInUser,
+  userRegistrationError,
+  userLoginError,
+  locationShareState,
+  onRegisterWorker,
+  onLoginWorker,
+  onLogoutWorker,
+  onToggleAvailability,
+  onRegisterUser,
+  onLoginUser,
+  onLogoutUser,
+}) => {
+  const [activeMode, setActiveMode] = useState(initialMode);
+  const [userRegisterForm, setUserRegisterForm] = useState(createUserForm);
+  const [userLoginForm, setUserLoginForm] = useState(createUserForm);
+  const [workerRegisterForm, setWorkerRegisterForm] = useState(createWorkerRegisterForm);
+  const [workerLoginForm, setWorkerLoginForm] = useState(createWorkerLoginForm);
+  const [userRegisterErrors, setUserRegisterErrors] = useState({});
+  const [userLoginErrors, setUserLoginErrors] = useState({});
+  const [workerRegisterErrors, setWorkerRegisterErrors] = useState({});
+  const [workerLoginErrors, setWorkerLoginErrors] = useState({});
+  const [workerRegisterSuccess, setWorkerRegisterSuccess] = useState('');
+
+  useEffect(() => {
+    setActiveMode(initialMode);
+  }, [initialMode]);
+
+  const currentMode = useMemo(
+    () => authModes.find((mode) => mode.id === activeMode) || authModes[0],
+    [activeMode]
+  );
+
+  const workerSummary = useMemo(() => {
+    if (!sessionWorker) {
+      return '';
+    }
+
+    return `${sessionWorker.name} can now switch availability and share live location while signed in.`;
+  }, [sessionWorker]);
+
+  const showWorkerSessionLoading = Boolean(workerSession) && workersLoading && !sessionWorker;
+
+  const handleUserChange = (setter, errorSetter) => (event) => {
+    const { name, value } = event.target;
+
+    setter((currentForm) => ({
+      ...currentForm,
+      [name]: value,
+    }));
+
+    errorSetter((currentErrors) => {
+      if (!currentErrors[name]) {
+        return currentErrors;
+      }
+
+      return {
+        ...currentErrors,
+        [name]: '',
+      };
+    });
+  };
+
+  const handleWorkerRegisterChange = (event) => {
+    const { name, value, type, checked } = event.target;
+
+    setWorkerRegisterForm((currentForm) => ({
+      ...currentForm,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+
+    setWorkerRegisterErrors((currentErrors) => {
+      if (!currentErrors[name]) {
+        return currentErrors;
+      }
+
+      return {
+        ...currentErrors,
+        [name]: '',
+      };
+    });
+
+    if (workerRegisterSuccess) {
+      setWorkerRegisterSuccess('');
+    }
+  };
+
+  const handleWorkerLoginChange = (event) => {
+    const { name, value } = event.target;
+
+    setWorkerLoginForm((currentForm) => ({
+      ...currentForm,
+      [name]: value,
+    }));
+
+    setWorkerLoginErrors((currentErrors) => {
+      if (!currentErrors[name]) {
+        return currentErrors;
+      }
+
+      return {
+        ...currentErrors,
+        [name]: '',
+      };
+    });
+  };
+
+  const validateUserForm = (form, formType) => {
+    const nextErrors = {};
+
+    if (!form.email) {
+      nextErrors.email = 'Please enter your email.';
+    } else if (!validateEmail(form.email)) {
+      nextErrors.email = 'Enter a valid email address.';
+    }
+
+    if (!form.password) {
+      nextErrors.password = 'Please enter your password.';
+    } else if (formType === 'register' && form.password.length < 6) {
+      nextErrors.password = 'Password must be at least 6 characters.';
+    }
+
+    return nextErrors;
+  };
+
+  const handleUserRegisterSubmit = async (event) => {
+    event.preventDefault();
+
+    const trimmedForm = {
+      email: userRegisterForm.email.trim().toLowerCase(),
+      password: userRegisterForm.password.trim(),
+    };
+    const nextErrors = validateUserForm(trimmedForm, 'register');
+
+    if (Object.keys(nextErrors).length > 0) {
+      setUserRegisterErrors(nextErrors);
+      return;
+    }
+
+    try {
+      await onRegisterUser(trimmedForm);
+      setUserRegisterForm(createUserForm());
+      setUserRegisterErrors({});
+    } catch {
+      // Parent state already handles backend error.
+    }
+  };
+
+  const handleUserLoginSubmit = async (event) => {
+    event.preventDefault();
+
+    const trimmedForm = {
+      email: userLoginForm.email.trim().toLowerCase(),
+      password: userLoginForm.password.trim(),
+    };
+    const nextErrors = validateUserForm(trimmedForm, 'login');
+
+    if (Object.keys(nextErrors).length > 0) {
+      setUserLoginErrors(nextErrors);
+      return;
+    }
+
+    try {
+      await onLoginUser(trimmedForm);
+      setUserLoginForm(createUserForm());
+      setUserLoginErrors({});
+    } catch {
+      // Parent state already handles backend error.
+    }
+  };
+
+  const handleWorkerRegisterSubmit = async (event) => {
+    event.preventDefault();
+
+    const trimmedForm = {
+      name: workerRegisterForm.name.trim(),
+      email: workerRegisterForm.email.trim().toLowerCase(),
+      password: workerRegisterForm.password.trim(),
+      phone: workerRegisterForm.phone.trim(),
+      service: workerRegisterForm.service.trim(),
+      location: workerRegisterForm.location.trim(),
+      available: Boolean(workerRegisterForm.available),
+    };
+
+    const nextErrors = {};
+
+    if (!trimmedForm.name) {
+      nextErrors.name = 'Please enter the worker name.';
+    }
+
+    if (!trimmedForm.email) {
+      nextErrors.email = 'Please enter the worker email.';
+    } else if (!validateEmail(trimmedForm.email)) {
+      nextErrors.email = 'Enter a valid email address.';
+    }
+
+    if (!trimmedForm.password) {
+      nextErrors.password = 'Please create a password.';
+    } else if (trimmedForm.password.length < 6) {
+      nextErrors.password = 'Password must be at least 6 characters.';
+    }
+
+    if (!trimmedForm.phone) {
+      nextErrors.phone = 'Please enter the worker phone number.';
+    }
+
+    if (!trimmedForm.location) {
+      nextErrors.location = 'Please enter the base location.';
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setWorkerRegisterErrors(nextErrors);
+      return;
+    }
+
+    try {
+      await onRegisterWorker({
+        email: trimmedForm.email,
+        password: trimmedForm.password,
+        workerProfile: {
+          name: trimmedForm.name,
+          phone: trimmedForm.phone,
+          service: trimmedForm.service,
+          location: trimmedForm.location,
+          available: trimmedForm.available,
+        },
+      });
+
+      setWorkerRegisterForm(createWorkerRegisterForm());
+      setWorkerRegisterErrors({});
+      setWorkerRegisterSuccess('Worker account created and signed in successfully.');
+      setActiveMode('worker-login');
+    } catch {
+      // Parent state already handles backend error.
+    }
+  };
+
+  const handleWorkerLoginSubmit = async (event) => {
+    event.preventDefault();
+
+    const trimmedForm = {
+      email: workerLoginForm.email.trim().toLowerCase(),
+      password: workerLoginForm.password.trim(),
+    };
+    const nextErrors = {};
+
+    if (!trimmedForm.email) {
+      nextErrors.email = 'Please enter the worker email.';
+    } else if (!validateEmail(trimmedForm.email)) {
+      nextErrors.email = 'Enter a valid email address.';
+    }
+
+    if (!trimmedForm.password) {
+      nextErrors.password = 'Please enter the password.';
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setWorkerLoginErrors(nextErrors);
+      return;
+    }
+
+    try {
+      await onLoginWorker(trimmedForm);
+      setWorkerLoginForm(createWorkerLoginForm());
+      setWorkerLoginErrors({});
+    } catch {
+      // Parent state already handles backend error.
+    }
+  };
+
+  const renderUserRegister = () => (
+    <section className="portal-panel-card">
+      <div className="section-badge" style={{ marginBottom: '0.9rem' }}>
+        User Signup
+      </div>
+      <h2 className="portal-panel-title">Create your user account</h2>
+      <p className="portal-inline-copy">
+        Register with email and password, then return anytime to continue booking from the same account.
+      </p>
+
+      <form className="portal-form-grid" onSubmit={handleUserRegisterSubmit}>
+        <label className="booking-field">
+          <span>Email</span>
+          <input
+            type="email"
+            name="email"
+            value={userRegisterForm.email}
+            onChange={handleUserChange(setUserRegisterForm, setUserRegisterErrors)}
+            className={userRegisterErrors.email ? 'has-error' : ''}
+            placeholder="you@example.com"
+          />
+          {userRegisterErrors.email ? <small>{userRegisterErrors.email}</small> : null}
+        </label>
+
+        <label className="booking-field">
+          <span>Password</span>
+          <input
+            type="password"
+            name="password"
+            value={userRegisterForm.password}
+            onChange={handleUserChange(setUserRegisterForm, setUserRegisterErrors)}
+            className={userRegisterErrors.password ? 'has-error' : ''}
+            placeholder="Create a password"
+          />
+          {userRegisterErrors.password ? <small>{userRegisterErrors.password}</small> : null}
+        </label>
+
+        <button type="submit" className="btn-primary portal-submit" disabled={isRegisteringUser}>
+          {isRegisteringUser ? 'Creating Account...' : 'Create User Account'}
+        </button>
+      </form>
+
+      {userRegistrationError ? (
+        <div className="workers-feedback" role="alert" style={{ marginBottom: 0 }}>
+          {userRegistrationError}
+        </div>
+      ) : null}
+    </section>
+  );
+
+  const renderUserLogin = () => (
+    <section className="portal-panel-card">
+      <div className="section-badge" style={{ marginBottom: '0.9rem' }}>
+        User Login
+      </div>
+      <h2 className="portal-panel-title">Sign in to your user account</h2>
+      <p className="portal-inline-copy">
+        Existing users can log in here with the same email and password used during signup.
+      </p>
+
+      <form className="portal-form-grid" onSubmit={handleUserLoginSubmit}>
+        <label className="booking-field">
+          <span>Email</span>
+          <input
+            type="email"
+            name="email"
+            value={userLoginForm.email}
+            onChange={handleUserChange(setUserLoginForm, setUserLoginErrors)}
+            className={userLoginErrors.email ? 'has-error' : ''}
+            placeholder="Registered email"
+          />
+          {userLoginErrors.email ? <small>{userLoginErrors.email}</small> : null}
+        </label>
+
+        <label className="booking-field">
+          <span>Password</span>
+          <input
+            type="password"
+            name="password"
+            value={userLoginForm.password}
+            onChange={handleUserChange(setUserLoginForm, setUserLoginErrors)}
+            className={userLoginErrors.password ? 'has-error' : ''}
+            placeholder="Enter your password"
+          />
+          {userLoginErrors.password ? <small>{userLoginErrors.password}</small> : null}
+        </label>
+
+        <button type="submit" className="btn-primary portal-submit" disabled={isLoggingInUser}>
+          {isLoggingInUser ? 'Signing In...' : 'Login User'}
+        </button>
+      </form>
+
+      {userLoginError ? (
+        <div className="workers-feedback" role="alert" style={{ marginBottom: 0 }}>
+          {userLoginError}
+        </div>
+      ) : null}
+    </section>
+  );
+
+  const renderWorkerRegister = () => (
+    <section className="portal-panel-card">
+      <div className="section-badge" style={{ marginBottom: '0.9rem' }}>
+        Worker Signup
+      </div>
+      <h2 className="portal-panel-title">Create a worker account</h2>
+      <p className="portal-inline-copy">
+        Register once with email and password, then sign in anytime to control live availability and location.
+      </p>
+
+      <form className="portal-form-grid" onSubmit={handleWorkerRegisterSubmit}>
+        <label className="booking-field">
+          <span>Name</span>
+          <input
+            type="text"
+            name="name"
+            value={workerRegisterForm.name}
+            onChange={handleWorkerRegisterChange}
+            className={workerRegisterErrors.name ? 'has-error' : ''}
+            placeholder="Worker full name"
+          />
+          {workerRegisterErrors.name ? <small>{workerRegisterErrors.name}</small> : null}
+        </label>
+
+        <label className="booking-field">
+          <span>Email</span>
+          <input
+            type="email"
+            name="email"
+            value={workerRegisterForm.email}
+            onChange={handleWorkerRegisterChange}
+            className={workerRegisterErrors.email ? 'has-error' : ''}
+            placeholder="worker@email.com"
+          />
+          {workerRegisterErrors.email ? <small>{workerRegisterErrors.email}</small> : null}
+        </label>
+
+        <label className="booking-field">
+          <span>Password</span>
+          <input
+            type="password"
+            name="password"
+            value={workerRegisterForm.password}
+            onChange={handleWorkerRegisterChange}
+            className={workerRegisterErrors.password ? 'has-error' : ''}
+            placeholder="Create a password"
+          />
+          {workerRegisterErrors.password ? <small>{workerRegisterErrors.password}</small> : null}
+        </label>
+
+        <label className="booking-field">
+          <span>Phone</span>
+          <input
+            type="tel"
+            name="phone"
+            value={workerRegisterForm.phone}
+            onChange={handleWorkerRegisterChange}
+            className={workerRegisterErrors.phone ? 'has-error' : ''}
+            placeholder="Worker phone number"
+          />
+          {workerRegisterErrors.phone ? <small>{workerRegisterErrors.phone}</small> : null}
+        </label>
+
+        <label className="booking-field">
+          <span>Service</span>
+          <select name="service" value={workerRegisterForm.service} onChange={handleWorkerRegisterChange}>
+            {serviceOptions.map((service) => (
+              <option key={service} value={service}>
+                {service}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="booking-field">
+          <span>Base Location</span>
+          <input
+            type="text"
+            name="location"
+            value={workerRegisterForm.location}
+            onChange={handleWorkerRegisterChange}
+            className={workerRegisterErrors.location ? 'has-error' : ''}
+            placeholder="City, area, or neighborhood"
+          />
+          {workerRegisterErrors.location ? <small>{workerRegisterErrors.location}</small> : null}
+        </label>
+
+        <label className="portal-checkbox">
+          <input
+            type="checkbox"
+            name="available"
+            checked={workerRegisterForm.available}
+            onChange={handleWorkerRegisterChange}
+          />
+          <span>Set worker as available after signup</span>
+        </label>
+
+        <button type="submit" className="btn-primary portal-submit" disabled={isRegisteringWorker}>
+          {isRegisteringWorker ? 'Creating Account...' : 'Create Worker Account'}
+        </button>
+      </form>
+
+      {workerRegisterSuccess ? (
+        <div className="worker-form-success" role="status">
+          {workerRegisterSuccess}
+        </div>
+      ) : null}
+
+      {workerRegistrationError ? (
+        <div className="workers-feedback" role="alert" style={{ marginBottom: 0 }}>
+          {workerRegistrationError}
+        </div>
+      ) : null}
+    </section>
+  );
+
+  const renderWorkerLogin = () => (
+    <section className="portal-panel-card">
+      <div className="section-badge" style={{ marginBottom: '0.9rem' }}>
+        Worker Login
+      </div>
+      <h2 className="portal-panel-title">Sign in with your worker account</h2>
+      <p className="portal-inline-copy">
+        Use your registered email and password to go online, share live location, and update availability.
+      </p>
+
+      <form className="portal-form-grid" onSubmit={handleWorkerLoginSubmit}>
+        <label className="booking-field">
+          <span>Email</span>
+          <input
+            type="email"
+            name="email"
+            value={workerLoginForm.email}
+            onChange={handleWorkerLoginChange}
+            className={workerLoginErrors.email ? 'has-error' : ''}
+            placeholder="Registered worker email"
+          />
+          {workerLoginErrors.email ? <small>{workerLoginErrors.email}</small> : null}
+        </label>
+
+        <label className="booking-field">
+          <span>Password</span>
+          <input
+            type="password"
+            name="password"
+            value={workerLoginForm.password}
+            onChange={handleWorkerLoginChange}
+            className={workerLoginErrors.password ? 'has-error' : ''}
+            placeholder="Enter your password"
+          />
+          {workerLoginErrors.password ? <small>{workerLoginErrors.password}</small> : null}
+        </label>
+
+        <button type="submit" className="btn-primary portal-submit" disabled={isLoggingInWorker}>
+          {isLoggingInWorker ? 'Signing In...' : 'Login Worker'}
+        </button>
+      </form>
+
+      {workerLoginError ? (
+        <div className="workers-feedback" role="alert" style={{ marginBottom: 0 }}>
+          {workerLoginError}
+        </div>
+      ) : null}
+    </section>
+  );
+
+  const renderSessionPanel = () => {
+    if (currentMode.type === 'worker' && sessionWorker) {
+      return (
+        <section className="portal-stack">
+          <WorkerSessionPanel
+            sessionWorker={sessionWorker}
+            sessionEmail={workerSession?.email || ''}
+            isTogglingAvailability={isUpdatingAvailability}
+            locationShareState={locationShareState}
+            onLogout={onLogoutWorker}
+            onToggleAvailability={onToggleAvailability}
+          />
+
+          <section className="portal-panel-card">
+            <div className="section-badge" style={{ marginBottom: '0.9rem' }}>
+              Live Status
+            </div>
+            <h2 className="portal-panel-title">Signed in and ready</h2>
+            <p className="portal-inline-copy">{workerSummary}</p>
+          </section>
+        </section>
+      );
+    }
+
+    if (currentMode.type === 'user' && userSession) {
+      return (
+        <section className="portal-panel-card portal-stack">
+          <div>
+            <div className="section-badge" style={{ marginBottom: '0.9rem' }}>
+              Signed In
+            </div>
+            <h2 className="portal-panel-title">{userSession.email}</h2>
+            <p className="portal-inline-copy">
+              Your account is active on this device. You can return to the home page and continue booking anytime.
+            </p>
+          </div>
+
+          <div className="portal-account-actions">
+            <a href="/" className="btn-primary portal-action-link">
+              Go To Home
+            </a>
+            <button type="button" className="btn-outline portal-action-link" onClick={onLogoutUser}>
+              Logout
+            </button>
+          </div>
+        </section>
+      );
+    }
+
+    return null;
+  };
+
+  const renderActivePanel = () => {
+    if (showWorkerSessionLoading) {
+      return (
+        <section className="portal-panel-card">
+          <p className="portal-inline-copy">Loading your worker profile...</p>
+        </section>
+      );
+    }
+
+    const sessionPanel = renderSessionPanel();
+
+    if (sessionPanel) {
+      return sessionPanel;
+    }
+
+    switch (activeMode) {
+      case 'user-login':
+        return renderUserLogin();
+      case 'worker-register':
+        return renderWorkerRegister();
+      case 'worker-login':
+        return renderWorkerLogin();
+      case 'user-register':
+      default:
+        return renderUserRegister();
+    }
+  };
+
+  return (
+    <main className="portal-page">
+      <section className="portal-hero-card">
+        <div className="section-badge" style={{ marginBottom: '1rem' }}>
+          Sign Up And Login
+        </div>
+        <h1 className="portal-page-title">One access page for users and workers</h1>
+        <p className="portal-page-copy">
+          Choose how you want to continue. This single page now includes user registration, user login, worker
+          registration, and worker login in one place.
+        </p>
+      </section>
+
+      <section className="portal-mode-switcher" aria-label="Auth mode selection">
+        {authModes.map((mode) => (
+          <button
+            key={mode.id}
+            type="button"
+            className={`portal-mode-chip${activeMode === mode.id ? ' is-active' : ''}`}
+            onClick={() => setActiveMode(mode.id)}
+          >
+            {mode.label}
+          </button>
+        ))}
+      </section>
+
+      {renderActivePanel()}
+    </main>
+  );
+};
+
+export default AuthHubPage;

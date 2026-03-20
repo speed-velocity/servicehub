@@ -1339,6 +1339,40 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   padding: 2rem 1.5rem 5rem;
 }
 
+.portal-mode-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin: 1.35rem 0 1.5rem;
+  padding: 0.55rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.portal-mode-chip {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.8rem 1.15rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 180ms ease, color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+
+.portal-mode-chip:hover,
+.portal-mode-chip.is-active {
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.32), rgba(96, 165, 250, 0.18));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 18px 36px rgba(2, 6, 23, 0.24);
+}
+
 .portal-stack {
   display: grid;
   gap: 1.25rem;
