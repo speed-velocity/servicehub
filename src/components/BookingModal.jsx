@@ -3,6 +3,8 @@ import React, { useEffect, useRef } from 'react';
 const BookingModal = ({
   isOpen,
   selectedService,
+  showServiceSelect,
+  serviceOptions,
   formData,
   formErrors,
   confirmedBooking,
@@ -112,15 +114,42 @@ const BookingModal = ({
             >
               Complete Your Booking
             </h3>
-            <p style={{ color: '#9ca3af', marginBottom: '1.5rem' }}>
-              Selected service: <span style={{ color: '#ffffff', fontWeight: '600' }}>{selectedService}</span>
-            </p>
+            {!showServiceSelect ? (
+              <p style={{ color: '#9ca3af', marginBottom: '1.5rem' }}>
+                Selected service: <span style={{ color: '#ffffff', fontWeight: '600' }}>{selectedService}</span>
+              </p>
+            ) : (
+              <p style={{ color: '#9ca3af', marginBottom: '1.5rem' }}>
+                Choose the service you need and then fill in your details.
+              </p>
+            )}
 
             <form className="booking-form" onSubmit={onSubmit}>
+              {showServiceSelect ? (
+                <label className="booking-field">
+                  <span>Which Service Do You Need?</span>
+                  <select
+                    ref={firstInputRef}
+                    name="service"
+                    value={selectedService}
+                    onChange={onChange}
+                    className={formErrors.service ? 'has-error' : ''}
+                  >
+                    <option value="">Select a service</option>
+                    {serviceOptions.map((service) => (
+                      <option key={service} value={service}>
+                        {service}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.service && <small>{formErrors.service}</small>}
+                </label>
+              ) : null}
+
               <label className="booking-field">
                 <span>Name</span>
                 <input
-                  ref={firstInputRef}
+                  ref={!showServiceSelect ? firstInputRef : null}
                   type="text"
                   name="name"
                   value={formData.name}

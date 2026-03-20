@@ -7,6 +7,7 @@ import WorkersSection from './components/WorkersSection';
 import Footer from './components/Footer';
 import BookingModal from './components/BookingModal';
 import './index.css';
+import { serviceOptions } from './constants/services';
 import {
   createWorker,
   listenToWorkers,
@@ -19,10 +20,10 @@ const emptyForm = {
   address: '',
 };
 
-const fallbackService = 'General Home Service';
-
 function App() {
   const [selectedService, setSelectedService] = useState('');
+  const [bookingService, setBookingService] = useState('');
+  const [showBookingServiceSelect, setShowBookingServiceSelect] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingForm, setBookingForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState({});
@@ -77,8 +78,9 @@ function App() {
     return workers.filter((worker) => worker.service === selectedService);
   }, [selectedService, workers]);
 
-  const openBooking = (service = selectedService || fallbackService) => {
-    setSelectedService(service);
+  const openBooking = (service = '') => {
+    setBookingService(service);
+    setShowBookingServiceSelect(!service);
     setFormErrors({});
     setConfirmedBooking(null);
     setIsBookingOpen(true);
@@ -87,6 +89,8 @@ function App() {
   const closeBooking = () => {
     setIsBookingOpen(false);
     setFormErrors({});
+    setBookingService('');
+    setShowBookingServiceSelect(false);
   };
 
   const handleServiceSelect = (service) => {
@@ -96,6 +100,22 @@ function App() {
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
+
+    if (name === 'service') {
+      setBookingService(value);
+      setFormErrors((currentErrors) => {
+        if (!currentErrors.service) {
+          return currentErrors;
+        }
+
+        return {
+          ...currentErrors,
+          service: '',
+        };
+      });
+
+      return;
+    }
 
     setBookingForm((currentForm) => ({
       ...currentForm,
@@ -124,6 +144,11 @@ function App() {
     };
 
     const nextErrors = {};
+    const trimmedService = bookingService.trim();
+
+    if (!trimmedService) {
+      nextErrors.service = 'Please choose a service.';
+    }
 
     if (!trimmedForm.name) {
       nextErrors.name = 'Please enter your name.';
@@ -144,8 +169,9 @@ function App() {
 
     setConfirmedBooking({
       ...trimmedForm,
-      service: selectedService || fallbackService,
+      service: trimmedService,
     });
+    setBookingService('');
     setBookingForm(emptyForm);
     setFormErrors({});
   };
@@ -212,7 +238,9 @@ function App() {
       <Footer />
       <BookingModal
         isOpen={isBookingOpen}
-        selectedService={selectedService || fallbackService}
+        selectedService={bookingService}
+        showServiceSelect={showBookingServiceSelect}
+        serviceOptions={serviceOptions}
         formData={bookingForm}
         formErrors={formErrors}
         confirmedBooking={confirmedBooking}
