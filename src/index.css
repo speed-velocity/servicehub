@@ -1358,7 +1358,7 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
 .portal-page {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 5rem;
+  padding: 1.2rem 1.5rem 5rem;
 }
 
 .portal-mode-switcher {
@@ -1446,6 +1446,52 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   margin-top: 1.4rem;
+}
+
+.password-input-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.password-input-shell input {
+  width: 100%;
+}
+
+.password-toggle-btn {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: #dbeafe;
+  border-radius: 12px;
+  padding: 0.72rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.password-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.password-hint {
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.password-hint-muted {
+  color: #9ca3af;
+}
+
+.password-hint-error {
+  color: #fca5a5;
+}
+
+.password-hint-success {
+  color: #86efac;
 }
 
 .portal-submit,

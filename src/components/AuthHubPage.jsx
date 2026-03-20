@@ -3,10 +3,10 @@ import { serviceOptions } from '../constants/services';
 import WorkerSessionPanel from './WorkerSessionPanel';
 
 const authModes = [
-  { id: 'user-register', label: 'User Register', type: 'user', action: 'register' },
-  { id: 'user-login', label: 'User Login', type: 'user', action: 'login' },
-  { id: 'worker-register', label: 'Worker Register', type: 'worker', action: 'register' },
-  { id: 'worker-login', label: 'Worker Login', type: 'worker', action: 'login' },
+  { id: 'user-register', label: 'User Register', type: 'user' },
+  { id: 'user-login', label: 'User Login', type: 'user' },
+  { id: 'worker-register', label: 'Worker Register', type: 'worker' },
+  { id: 'worker-login', label: 'Worker Login', type: 'worker' },
 ];
 
 const createUserForm = () => ({
@@ -30,6 +30,58 @@ const createWorkerLoginForm = () => ({
 });
 
 const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+const getPasswordHint = (password, requiresStrongCheck) => {
+  if (!password) {
+    return {
+      text: 'Use at least 6 characters.',
+      status: 'muted',
+    };
+  }
+
+  if (requiresStrongCheck && password.length < 6) {
+    return {
+      text: 'Password is too short. Use at least 6 characters.',
+      status: 'error',
+    };
+  }
+
+  return {
+    text: 'Password length looks good.',
+    status: 'success',
+  };
+};
+
+const PasswordField = ({
+  error,
+  hint,
+  isVisible,
+  label,
+  name,
+  onChange,
+  onToggleVisibility,
+  placeholder,
+  value,
+}) => (
+  <label className="booking-field">
+    <span>{label}</span>
+    <div className={`password-input-shell${error ? ' has-error' : ''}`}>
+      <input
+        type={isVisible ? 'text' : 'password'}
+        name={name}
+        value={value}
+        onChange={onChange}
+        className={error ? 'has-error' : ''}
+        placeholder={placeholder}
+      />
+      <button type="button" className="password-toggle-btn" onClick={onToggleVisibility}>
+        {isVisible ? 'Hide' : 'Show'}
+      </button>
+    </div>
+    {error ? <small>{error}</small> : null}
+    {!error && hint ? <p className={`password-hint password-hint-${hint.status}`}>{hint.text}</p> : null}
+  </label>
+);
 
 const AuthHubPage = ({
   initialMode,
@@ -65,6 +117,12 @@ const AuthHubPage = ({
   const [workerRegisterErrors, setWorkerRegisterErrors] = useState({});
   const [workerLoginErrors, setWorkerLoginErrors] = useState({});
   const [workerRegisterSuccess, setWorkerRegisterSuccess] = useState('');
+  const [visiblePasswords, setVisiblePasswords] = useState({
+    userRegister: false,
+    userLogin: false,
+    workerRegister: false,
+    workerLogin: false,
+  });
 
   useEffect(() => {
     setActiveMode(initialMode);
@@ -84,6 +142,18 @@ const AuthHubPage = ({
   }, [sessionWorker]);
 
   const showWorkerSessionLoading = Boolean(workerSession) && workersLoading && !sessionWorker;
+
+  const userRegisterPasswordHint = getPasswordHint(userRegisterForm.password, true);
+  const userLoginPasswordHint = getPasswordHint(userLoginForm.password, false);
+  const workerRegisterPasswordHint = getPasswordHint(workerRegisterForm.password, true);
+  const workerLoginPasswordHint = getPasswordHint(workerLoginForm.password, false);
+
+  const togglePasswordVisibility = (key) => {
+    setVisiblePasswords((currentState) => ({
+      ...currentState,
+      [key]: !currentState[key],
+    }));
+  };
 
   const handleUserChange = (setter, errorSetter) => (event) => {
     const { name, value } = event.target;
@@ -336,18 +406,17 @@ const AuthHubPage = ({
           {userRegisterErrors.email ? <small>{userRegisterErrors.email}</small> : null}
         </label>
 
-        <label className="booking-field">
-          <span>Password</span>
-          <input
-            type="password"
-            name="password"
-            value={userRegisterForm.password}
-            onChange={handleUserChange(setUserRegisterForm, setUserRegisterErrors)}
-            className={userRegisterErrors.password ? 'has-error' : ''}
-            placeholder="Create a password"
-          />
-          {userRegisterErrors.password ? <small>{userRegisterErrors.password}</small> : null}
-        </label>
+        <PasswordField
+          error={userRegisterErrors.password}
+          hint={userRegisterPasswordHint}
+          isVisible={visiblePasswords.userRegister}
+          label="Password"
+          name="password"
+          onChange={handleUserChange(setUserRegisterForm, setUserRegisterErrors)}
+          onToggleVisibility={() => togglePasswordVisibility('userRegister')}
+          placeholder="Create a password"
+          value={userRegisterForm.password}
+        />
 
         <button type="submit" className="btn-primary portal-submit" disabled={isRegisteringUser}>
           {isRegisteringUser ? 'Creating Account...' : 'Create User Account'}
@@ -386,18 +455,17 @@ const AuthHubPage = ({
           {userLoginErrors.email ? <small>{userLoginErrors.email}</small> : null}
         </label>
 
-        <label className="booking-field">
-          <span>Password</span>
-          <input
-            type="password"
-            name="password"
-            value={userLoginForm.password}
-            onChange={handleUserChange(setUserLoginForm, setUserLoginErrors)}
-            className={userLoginErrors.password ? 'has-error' : ''}
-            placeholder="Enter your password"
-          />
-          {userLoginErrors.password ? <small>{userLoginErrors.password}</small> : null}
-        </label>
+        <PasswordField
+          error={userLoginErrors.password}
+          hint={userLoginPasswordHint}
+          isVisible={visiblePasswords.userLogin}
+          label="Password"
+          name="password"
+          onChange={handleUserChange(setUserLoginForm, setUserLoginErrors)}
+          onToggleVisibility={() => togglePasswordVisibility('userLogin')}
+          placeholder="Enter your password"
+          value={userLoginForm.password}
+        />
 
         <button type="submit" className="btn-primary portal-submit" disabled={isLoggingInUser}>
           {isLoggingInUser ? 'Signing In...' : 'Login User'}
@@ -449,18 +517,17 @@ const AuthHubPage = ({
           {workerRegisterErrors.email ? <small>{workerRegisterErrors.email}</small> : null}
         </label>
 
-        <label className="booking-field">
-          <span>Password</span>
-          <input
-            type="password"
-            name="password"
-            value={workerRegisterForm.password}
-            onChange={handleWorkerRegisterChange}
-            className={workerRegisterErrors.password ? 'has-error' : ''}
-            placeholder="Create a password"
-          />
-          {workerRegisterErrors.password ? <small>{workerRegisterErrors.password}</small> : null}
-        </label>
+        <PasswordField
+          error={workerRegisterErrors.password}
+          hint={workerRegisterPasswordHint}
+          isVisible={visiblePasswords.workerRegister}
+          label="Password"
+          name="password"
+          onChange={handleWorkerRegisterChange}
+          onToggleVisibility={() => togglePasswordVisibility('workerRegister')}
+          placeholder="Create a password"
+          value={workerRegisterForm.password}
+        />
 
         <label className="booking-field">
           <span>Phone</span>
@@ -552,18 +619,17 @@ const AuthHubPage = ({
           {workerLoginErrors.email ? <small>{workerLoginErrors.email}</small> : null}
         </label>
 
-        <label className="booking-field">
-          <span>Password</span>
-          <input
-            type="password"
-            name="password"
-            value={workerLoginForm.password}
-            onChange={handleWorkerLoginChange}
-            className={workerLoginErrors.password ? 'has-error' : ''}
-            placeholder="Enter your password"
-          />
-          {workerLoginErrors.password ? <small>{workerLoginErrors.password}</small> : null}
-        </label>
+        <PasswordField
+          error={workerLoginErrors.password}
+          hint={workerLoginPasswordHint}
+          isVisible={visiblePasswords.workerLogin}
+          label="Password"
+          name="password"
+          onChange={handleWorkerLoginChange}
+          onToggleVisibility={() => togglePasswordVisibility('workerLogin')}
+          placeholder="Enter your password"
+          value={workerLoginForm.password}
+        />
 
         <button type="submit" className="btn-primary portal-submit" disabled={isLoggingInWorker}>
           {isLoggingInWorker ? 'Signing In...' : 'Login Worker'}
@@ -660,17 +726,6 @@ const AuthHubPage = ({
 
   return (
     <main className="portal-page">
-      <section className="portal-hero-card">
-        <div className="section-badge" style={{ marginBottom: '1rem' }}>
-          Sign Up And Login
-        </div>
-        <h1 className="portal-page-title">One access page for users and workers</h1>
-        <p className="portal-page-copy">
-          Choose how you want to continue. This single page now includes user registration, user login, worker
-          registration, and worker login in one place.
-        </p>
-      </section>
-
       <section className="portal-mode-switcher" aria-label="Auth mode selection">
         {authModes.map((mode) => (
           <button

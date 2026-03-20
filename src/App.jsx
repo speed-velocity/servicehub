@@ -547,7 +547,11 @@ function App() {
     }
   };
 
-  const handleLogoutWorker = async () => {
+  const navigateToSignup = () => {
+    window.location.href = '/signup';
+  };
+
+  const handleLogoutWorker = async (shouldRedirect = true) => {
     if (sessionWorker?.available) {
       try {
         await toggleWorkerAvailability(sessionWorker.id, sessionWorker.available);
@@ -563,6 +567,10 @@ function App() {
       status: 'idle',
       message: 'Sign in and go available to share live worker location.',
     });
+
+    if (shouldRedirect) {
+      navigateToSignup();
+    }
   };
 
   const handleRegisterUser = async ({ email, password }) => {
@@ -599,25 +607,31 @@ function App() {
     }
   };
 
-  const handleLogoutUser = () => {
+  const handleLogoutUser = (shouldRedirect = true) => {
     setUserSession(null);
     setUserLoginError('');
     setUserRegistrationError('');
+
+    if (shouldRedirect) {
+      navigateToSignup();
+    }
   };
 
   const handleHeaderAuthAction = async () => {
     if (!hasActiveSession) {
-      window.location.href = '/signup';
+      navigateToSignup();
       return;
     }
 
     if (workerSession) {
-      await handleLogoutWorker();
+      await handleLogoutWorker(false);
     }
 
     if (userSession) {
-      handleLogoutUser();
+      handleLogoutUser(false);
     }
+
+    navigateToSignup();
   };
 
   if (route === '/worker' || route === '/account' || route === '/signup') {
