@@ -90,17 +90,30 @@ const Footer = () => {
           <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.35rem', letterSpacing: '0.02em' }}>
             Contact
           </p>
-          <a
-            href="mailto:panditshubhankar78@gmail.com"
-            style={{
-              color: '#dbeafe',
-              textDecoration: 'none',
-              fontSize: '0.95rem',
-              fontWeight: '600',
-            }}
-          >
-            panditshubhankar78@gmail.com
-          </a>
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <a
+              href="mailto:panditshubhankar78@gmail.com"
+              style={{
+                color: '#dbeafe',
+                textDecoration: 'none',
+                fontSize: '0.95rem',
+                fontWeight: '600',
+              }}
+            >
+              panditshubhankar78@gmail.com
+            </a>
+            <a
+              href="mailto:utkarshhhhh@gmail.com"
+              style={{
+                color: '#dbeafe',
+                textDecoration: 'none',
+                fontSize: '0.95rem',
+                fontWeight: '600',
+              }}
+            >
+              utkarshhhhh@gmail.com
+            </a>
+          </div>
         </div>
 
         <p style={{ color: '#4b5563', fontSize: '0.82rem' }}>
