@@ -830,6 +830,59 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   font-weight: 700;
 }
 
+.booking-worker-results {
+  margin-top: 1.4rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.booking-worker-results-header {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.booking-worker-results-title {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.booking-worker-results-copy {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.booking-worker-results-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.booking-worker-card {
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
+  padding: 1rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.booking-worker-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.booking-worker-call {
+  display: inline-flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 0.85rem;
+  text-decoration: none;
+}
+
 .workers-grid,
 .workers-loading-grid {
   display: grid;
@@ -948,6 +1001,13 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
 .worker-location {
   color: #9ca3af;
   margin-bottom: 1.25rem;
+}
+
+.worker-contact {
+  color: #dbeafe;
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
 }
 
 .worker-status {

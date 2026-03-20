@@ -91,6 +91,7 @@ const WorkersSection = ({
               </div>
 
               <p className="worker-location">{worker.location}</p>
+              {worker.phone ? <p className="worker-contact">{worker.phone}</p> : null}
 
               <button
                 type="button"

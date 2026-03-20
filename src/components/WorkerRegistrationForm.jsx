@@ -12,6 +12,7 @@ const serviceOptions = [
 
 const createInitialForm = (selectedService) => ({
   name: '',
+  phone: '',
   service: selectedService || serviceOptions[0],
   location: '',
   available: true,
@@ -57,6 +58,7 @@ const WorkerRegistrationForm = ({
 
     const trimmedForm = {
       name: formData.name.trim(),
+      phone: formData.phone.trim(),
       service: formData.service.trim(),
       location: formData.location.trim(),
       available: Boolean(formData.available),
@@ -66,6 +68,10 @@ const WorkerRegistrationForm = ({
 
     if (!trimmedForm.name) {
       nextErrors.name = 'Please enter the worker name.';
+    }
+
+    if (!trimmedForm.phone) {
+      nextErrors.phone = 'Please enter the worker phone number.';
     }
 
     if (!trimmedForm.service) {
@@ -126,6 +132,19 @@ const WorkerRegistrationForm = ({
             placeholder="Worker full name"
           />
           {formErrors.name ? <small>{formErrors.name}</small> : null}
+        </label>
+
+        <label className="booking-field">
+          <span>Phone</span>
+          <input
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            className={formErrors.phone ? 'has-error' : ''}
+            placeholder="Worker phone number"
+          />
+          {formErrors.phone ? <small>{formErrors.phone}</small> : null}
         </label>
 
         <label className="booking-field">

@@ -29,6 +29,7 @@ const memoryWorkers = [
     name: 'Rahul Verma',
     service: 'Electrician',
     location: 'Bangalore',
+    phone: '+91 98765 43210',
     available: true,
     createdAt: Date.now() - 1000 * 60 * 30,
     updatedAt: Date.now() - 1000 * 60 * 30,
@@ -38,6 +39,7 @@ const memoryWorkers = [
     name: 'Anita Sharma',
     service: 'Plumber',
     location: 'Mumbai',
+    phone: '+91 91234 56789',
     available: false,
     createdAt: Date.now() - 1000 * 60 * 20,
     updatedAt: Date.now() - 1000 * 60 * 10,
@@ -66,6 +68,7 @@ const normalizeRow = (row) => ({
   name: row.name,
   service: row.service,
   location: row.location,
+  phone: row.phone || '',
   available: Boolean(row.available),
   createdAt: row.created_at ? new Date(row.created_at).getTime() : row.createdAt || 0,
   updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : row.updatedAt || 0,
@@ -82,10 +85,16 @@ export const ensureDatabaseReady = async () => {
       name TEXT NOT NULL,
       service TEXT NOT NULL,
       location TEXT NOT NULL,
+      phone TEXT,
       available BOOLEAN NOT NULL DEFAULT TRUE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE workers
+    ADD COLUMN IF NOT EXISTS phone TEXT;
   `);
 
   await pool.query(`
@@ -100,7 +109,7 @@ export const listWorkers = async () => {
   }
 
   const result = await pool.query(`
-    SELECT id, name, service, location, available, created_at, updated_at
+    SELECT id, name, service, location, phone, available, created_at, updated_at
     FROM workers
     ORDER BY updated_at DESC, service ASC, name ASC;
   `);
@@ -114,6 +123,7 @@ export const createWorker = async (worker) => {
     name: worker.name.trim(),
     service: worker.service.trim(),
     location: worker.location.trim(),
+    phone: worker.phone?.trim() || '',
     available: Boolean(worker.available),
   };
 
@@ -132,11 +142,11 @@ export const createWorker = async (worker) => {
 
   const result = await pool.query(
     `
-      INSERT INTO workers (id, name, service, location, available)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, name, service, location, available, created_at, updated_at;
+      INSERT INTO workers (id, name, service, location, phone, available)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id, name, service, location, phone, available, created_at, updated_at;
     `,
-    [nextWorker.id, nextWorker.name, nextWorker.service, nextWorker.location, nextWorker.available]
+    [nextWorker.id, nextWorker.name, nextWorker.service, nextWorker.location, nextWorker.phone, nextWorker.available]
   );
 
   return normalizeRow(result.rows[0]);
@@ -161,7 +171,7 @@ export const updateWorkerAvailability = async (workerId, available) => {
       UPDATE workers
       SET available = $2, updated_at = NOW()
       WHERE id = $1
-      RETURNING id, name, service, location, available, created_at, updated_at;
+      RETURNING id, name, service, location, phone, available, created_at, updated_at;
     `,
     [workerId, Boolean(available)]
   );

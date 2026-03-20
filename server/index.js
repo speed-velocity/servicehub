@@ -67,6 +67,10 @@ const validateWorker = (worker) => {
     nextErrors.location = 'Location is required.';
   }
 
+  if (!worker?.phone?.trim()) {
+    nextErrors.phone = 'Phone is required.';
+  }
+
   return nextErrors;
 };
 

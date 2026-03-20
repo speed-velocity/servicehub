@@ -9,6 +9,7 @@ const BookingModal = ({
   formData,
   formErrors,
   confirmedBooking,
+  matchedWorkers,
   isResolvingAddress,
   selectedLocation,
   onClose,
@@ -98,6 +99,44 @@ const BookingModal = ({
               <p><span>Name:</span> {confirmedBooking.name}</p>
               <p><span>Phone:</span> {confirmedBooking.phone}</p>
               <p><span>Address:</span> {confirmedBooking.address}</p>
+            </div>
+
+            <div className="booking-worker-results">
+              <div className="booking-worker-results-header">
+                <p className="booking-worker-results-title">Available workers for this booking</p>
+                <p className="booking-worker-results-copy">
+                  Showing available {confirmedBooking.service.toLowerCase()} workers sorted by location match.
+                </p>
+              </div>
+
+              {matchedWorkers.length > 0 ? (
+                <div className="booking-worker-results-grid">
+                  {matchedWorkers.map((worker) => (
+                    <article key={worker.id} className="booking-worker-card">
+                      <div className="booking-worker-card-top">
+                        <div>
+                          <p className="worker-name">{worker.name}</p>
+                          <p className="worker-meta">{worker.service}</p>
+                        </div>
+                        <span className="worker-status available">Available</span>
+                      </div>
+
+                      <p className="worker-location">{worker.location}</p>
+                      {worker.phone ? <p className="worker-contact">{worker.phone}</p> : null}
+
+                      {worker.phone ? (
+                        <a className="btn-outline booking-worker-call" href={`tel:${worker.phone.replace(/\s+/g, '')}`}>
+                          Call Worker
+                        </a>
+                      ) : null}
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="workers-empty-state" style={{ marginBottom: 0 }}>
+                  No available workers match this service right now.
+                </div>
+              )}
             </div>
 
             <button

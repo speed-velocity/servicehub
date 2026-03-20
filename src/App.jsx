@@ -21,6 +21,32 @@ const emptyForm = {
   address: '',
 };
 
+const normalizeText = (value) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const getLocationMatchScore = (address, workerLocation) => {
+  const normalizedAddress = normalizeText(address);
+  const normalizedWorkerLocation = normalizeText(workerLocation);
+
+  if (!normalizedAddress || !normalizedWorkerLocation) {
+    return 0;
+  }
+
+  if (normalizedAddress.includes(normalizedWorkerLocation)) {
+    return 4;
+  }
+
+  const addressTokens = normalizedAddress.split(' ').filter((token) => token.length > 2);
+  const workerLocationTokens = normalizedWorkerLocation.split(' ').filter((token) => token.length > 2);
+  const sharedTokens = workerLocationTokens.filter((token) => addressTokens.includes(token));
+
+  return sharedTokens.length;
+};
+
 function App() {
   const [selectedService, setSelectedService] = useState('');
   const [bookingService, setBookingService] = useState('');
@@ -80,6 +106,28 @@ function App() {
 
     return workers.filter((worker) => worker.service === selectedService);
   }, [selectedService, workers]);
+
+  const matchedWorkers = useMemo(() => {
+    if (!confirmedBooking) {
+      return [];
+    }
+
+    return workers
+      .filter((worker) => worker.available && worker.service === confirmedBooking.service)
+      .map((worker) => ({
+        ...worker,
+        locationScore: getLocationMatchScore(confirmedBooking.address, worker.location),
+      }))
+      .sort((leftWorker, rightWorker) => {
+        const locationScoreComparison = rightWorker.locationScore - leftWorker.locationScore;
+
+        if (locationScoreComparison !== 0) {
+          return locationScoreComparison;
+        }
+
+        return leftWorker.name.localeCompare(rightWorker.name);
+      });
+  }, [confirmedBooking, workers]);
 
   const openBooking = (service = '') => {
     setBookingService(service);
@@ -292,6 +340,7 @@ function App() {
         formData={bookingForm}
         formErrors={formErrors}
         confirmedBooking={confirmedBooking}
+        matchedWorkers={matchedWorkers}
         isResolvingAddress={isResolvingBookingAddress}
         selectedLocation={bookingLocation}
         onClose={closeBooking}
