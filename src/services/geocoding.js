@@ -1,44 +1,19 @@
-const buildReadableAddress = (address, fallback) => {
-  if (!address) {
-    return fallback;
-  }
+const apiBaseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
-  const parts = [
-    address.road,
-    address.neighbourhood || address.suburb || address.hamlet || address.quarter,
-    address.city || address.town || address.village || address.county || address.state_district,
-    address.state,
-    address.postcode,
-    address.country,
-  ].filter(Boolean);
-
-  const uniqueParts = parts.filter((part, index) => parts.indexOf(part) === index);
-
-  return uniqueParts.length > 0 ? uniqueParts.join(', ') : fallback;
-};
+const getApiUrl = (path) => `${apiBaseUrl}${path}`;
 
 export const reverseGeocodeLocation = async (lat, lng) => {
   const searchParams = new URLSearchParams({
-    format: 'jsonv2',
     lat: String(lat),
-    lon: String(lng),
-    addressdetails: '1',
-    zoom: '18',
-    'accept-language': 'en',
+    lng: String(lng),
   });
 
-  const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${searchParams.toString()}`, {
-    headers: {
-      Accept: 'application/json',
-    },
-  });
+  const response = await fetch(getApiUrl(`/api/geocode/reverse?${searchParams.toString()}`));
+  const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error('Unable to fetch location details right now.');
+    throw new Error(payload.error || 'Unable to fetch location details right now.');
   }
 
-  const data = await response.json();
-  const fallback = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-
-  return buildReadableAddress(data.address, fallback);
+  return payload.address || payload.displayName || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 };

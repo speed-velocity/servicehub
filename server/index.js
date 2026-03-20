@@ -19,6 +19,25 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const distPath = path.resolve(__dirname, '..', 'dist');
 
+const buildReadableAddress = (address, fallback) => {
+  if (!address) {
+    return fallback;
+  }
+
+  const parts = [
+    address.road || address.pedestrian,
+    address.neighbourhood || address.suburb || address.hamlet || address.quarter,
+    address.city || address.town || address.village || address.county || address.state_district,
+    address.state,
+    address.postcode,
+    address.country,
+  ].filter(Boolean);
+
+  const uniqueParts = parts.filter((part, index) => parts.indexOf(part) === index);
+
+  return uniqueParts.length > 0 ? uniqueParts.join(', ') : fallback;
+};
+
 const sendWorkers = async (response) => {
   const workers = await listWorkers();
   response.write(`data: ${JSON.stringify({ workers })}\n\n`);
@@ -63,6 +82,49 @@ app.get('/api/health', (_request, response) => {
     ok: true,
     database: hasDatabaseConnection ? 'postgres' : 'memory',
   });
+});
+
+app.get('/api/geocode/reverse', async (request, response) => {
+  const lat = Number(request.query.lat);
+  const lng = Number(request.query.lng);
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    response.status(400).json({ error: 'Valid lat and lng are required.' });
+    return;
+  }
+
+  try {
+    const searchParams = new URLSearchParams({
+      format: 'jsonv2',
+      lat: String(lat),
+      lon: String(lng),
+      addressdetails: '1',
+      zoom: '18',
+      'accept-language': 'en',
+    });
+
+    const nominatimResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?${searchParams.toString()}`, {
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'ServiceHub/1.0 (support: servicehub render app)',
+      },
+    });
+
+    if (!nominatimResponse.ok) {
+      response.status(502).json({ error: 'Unable to resolve location details right now.' });
+      return;
+    }
+
+    const payload = await nominatimResponse.json();
+    const fallback = payload.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+    response.json({
+      address: buildReadableAddress(payload.address, fallback),
+      displayName: payload.display_name || fallback,
+    });
+  } catch (error) {
+    response.status(500).json({ error: error.message || 'Unable to resolve location details right now.' });
+  }
 });
 
 app.get('/api/workers', async (_request, response) => {
