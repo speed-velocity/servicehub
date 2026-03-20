@@ -133,6 +133,8 @@ const AuthHubPage = ({
     () => authModes.find((mode) => mode.id === activeMode) || authModes[0],
     [activeMode]
   );
+  const activeType = currentMode.type;
+  const activeAction = currentMode.id.includes('login') ? 'login' : 'register';
 
   const workerSummary = useMemo(() => {
     if (!sessionWorker) {
@@ -154,6 +156,14 @@ const AuthHubPage = ({
       ...currentState,
       [key]: !currentState[key],
     }));
+  };
+
+  const switchType = (nextType) => {
+    setActiveMode(`${nextType}-${activeAction}`);
+  };
+
+  const switchAction = (nextAction) => {
+    setActiveMode(`${activeType}-${nextAction}`);
   };
 
   const handleUserChange = (setter, errorSetter) => (event) => {
@@ -733,17 +743,50 @@ const AuthHubPage = ({
         </section>
       ) : null}
 
-      <section className="portal-mode-switcher" aria-label="Auth mode selection">
-        {authModes.map((mode) => (
-          <button
-            key={mode.id}
-            type="button"
-            className={`portal-mode-chip${activeMode === mode.id ? ' is-active' : ''}`}
-            onClick={() => setActiveMode(mode.id)}
-          >
-            {mode.label}
-          </button>
-        ))}
+      <section className="auth-switchboard" aria-label="Auth mode selection">
+        <div className="auth-switchboard-copy">
+          <div className="section-badge">Secure Access</div>
+          <h1 className="auth-switchboard-title">
+            {activeType === 'user' ? 'User Account Access' : 'Worker Portal Access'}
+          </h1>
+          <p className="auth-switchboard-text">
+            {activeType === 'user'
+              ? activeAction === 'register'
+                ? 'Create your customer account to unlock bookings and manage future activity.'
+                : 'Sign in to continue booking services with your saved account.'
+              : activeAction === 'register'
+                ? 'Create a worker profile with secure credentials and start managing availability.'
+                : 'Sign in to control live status, current location, and worker activity.'}
+          </p>
+        </div>
+
+        <div className="auth-switchboard-controls">
+          <div className="auth-segment" role="tablist" aria-label="Account type">
+            {['user', 'worker'].map((type) => (
+              <button
+                key={type}
+                type="button"
+                className={`auth-segment-chip${activeType === type ? ' is-active' : ''}`}
+                onClick={() => switchType(type)}
+              >
+                {type === 'user' ? 'User Access' : 'Worker Access'}
+              </button>
+            ))}
+          </div>
+
+          <div className="auth-segment auth-segment-secondary" role="tablist" aria-label="Auth action">
+            {['register', 'login'].map((action) => (
+              <button
+                key={action}
+                type="button"
+                className={`auth-segment-chip${activeAction === action ? ' is-active' : ''}`}
+                onClick={() => switchAction(action)}
+              >
+                {action === 'register' ? 'Register' : 'Login'}
+              </button>
+            ))}
+          </div>
+        </div>
       </section>
 
       {renderActivePanel()}

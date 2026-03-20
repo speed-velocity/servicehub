@@ -1373,23 +1373,64 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   padding: 1.2rem 1.5rem 5rem;
 }
 
-.portal-mode-switcher {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem;
-  margin: 1.35rem 0 1.5rem;
-  padding: 0.55rem;
-  border-radius: 24px;
+.auth-switchboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 1.2rem;
+  align-items: end;
+  margin: 1.15rem 0 1.5rem;
+  padding: 1.15rem 1.2rem;
+  border-radius: 26px;
   border: 1px solid rgba(255, 255, 255, 0.09);
-  background: rgba(255, 255, 255, 0.035);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background:
+    radial-gradient(circle at top left, rgba(96, 165, 250, 0.14), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
-.portal-mode-chip {
+.auth-switchboard-copy {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.auth-switchboard-title {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+.auth-switchboard-text {
+  color: #a7b0c2;
+  max-width: 640px;
+  line-height: 1.7;
+}
+
+.auth-switchboard-controls {
+  display: grid;
+  gap: 0.85rem;
+  justify-items: stretch;
+}
+
+.auth-segment {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  padding: 0.5rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.auth-segment-secondary {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.auth-segment-chip {
   border: 0;
-  border-radius: 999px;
-  padding: 0.8rem 1.15rem;
+  border-radius: 18px;
+  padding: 0.95rem 1rem;
   background: rgba(255, 255, 255, 0.04);
   color: rgba(255, 255, 255, 0.74);
   font-size: 0.92rem;
@@ -1398,13 +1439,13 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   transition: background 180ms ease, color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
 
-.portal-mode-chip:hover,
-.portal-mode-chip.is-active {
+.auth-segment-chip:hover,
+.auth-segment-chip.is-active {
   color: #ffffff;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.32), rgba(96, 165, 250, 0.18));
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(96, 165, 250, 0.16));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 18px 36px rgba(2, 6, 23, 0.24);
+    0 18px 36px rgba(2, 6, 23, 0.22);
 }
 
 .portal-auth-prompt {
@@ -1556,6 +1597,10 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
 @media (max-width: 900px) {
   .portal-auth-grid,
   .portal-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-switchboard {
     grid-template-columns: 1fr;
   }
 }
