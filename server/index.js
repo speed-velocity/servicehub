@@ -4,6 +4,10 @@ import { fileURLToPath } from 'node:url';
 import cors from 'cors';
 import express from 'express';
 import {
+  authenticateUserAccount,
+  authenticateWorkerAccount,
+  createUserAccount,
+  createWorkerAccount,
   createWorker,
   ensureDatabaseReady,
   findWorkerByPhone,
@@ -104,6 +108,38 @@ const validateWorker = (worker) => {
   }
 
   return nextErrors;
+};
+
+const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+const validateAccountCredentials = (payload) => {
+  const nextErrors = {};
+
+  if (!payload?.email?.trim()) {
+    nextErrors.email = 'Email is required.';
+  } else if (!isValidEmail(payload.email.trim())) {
+    nextErrors.email = 'Enter a valid email address.';
+  }
+
+  if (!payload?.password?.trim()) {
+    nextErrors.password = 'Password is required.';
+  } else if (payload.password.trim().length < 6) {
+    nextErrors.password = 'Password must be at least 6 characters.';
+  }
+
+  return nextErrors;
+};
+
+const getErrorStatus = (error, fallbackStatus = 500) => {
+  if (error.message?.includes('already exists')) {
+    return 409;
+  }
+
+  if (error.message === 'Invalid email or password.') {
+    return 401;
+  }
+
+  return fallbackStatus;
 };
 
 app.use(
@@ -207,6 +243,93 @@ app.post('/api/workers', async (request, response) => {
     response.status(201).json(worker);
   } catch (error) {
     response.status(500).json({ error: error.message || 'Unable to create worker.' });
+  }
+});
+
+app.post('/api/worker-auth/register', async (request, response) => {
+  const credentialErrors = validateAccountCredentials(request.body);
+  const workerErrors = validateWorker(request.body?.workerProfile);
+  const errors = {
+    ...credentialErrors,
+    ...workerErrors,
+  };
+
+  if (Object.keys(errors).length > 0) {
+    response.status(400).json({ error: 'Please complete all worker signup fields.', errors });
+    return;
+  }
+
+  try {
+    const worker = await createWorkerAccount({
+      email: request.body.email,
+      password: request.body.password,
+      workerProfile: request.body.workerProfile,
+    });
+
+    await broadcastWorkers();
+    response.status(201).json(worker);
+  } catch (error) {
+    response.status(getErrorStatus(error)).json({ error: error.message || 'Unable to register worker account.' });
+  }
+});
+
+app.post('/api/worker-auth/login', async (request, response) => {
+  const credentialErrors = validateAccountCredentials(request.body);
+
+  if (Object.keys(credentialErrors).length > 0) {
+    response.status(400).json({ error: 'Email and password are required.', errors: credentialErrors });
+    return;
+  }
+
+  try {
+    const worker = await authenticateWorkerAccount({
+      email: request.body.email,
+      password: request.body.password,
+    });
+
+    response.json(worker);
+  } catch (error) {
+    response.status(getErrorStatus(error)).json({ error: error.message || 'Unable to login worker right now.' });
+  }
+});
+
+app.post('/api/user-auth/register', async (request, response) => {
+  const credentialErrors = validateAccountCredentials(request.body);
+
+  if (Object.keys(credentialErrors).length > 0) {
+    response.status(400).json({ error: 'Email and password are required.', errors: credentialErrors });
+    return;
+  }
+
+  try {
+    const user = await createUserAccount({
+      email: request.body.email,
+      password: request.body.password,
+    });
+
+    response.status(201).json(user);
+  } catch (error) {
+    response.status(getErrorStatus(error)).json({ error: error.message || 'Unable to create user account.' });
+  }
+});
+
+app.post('/api/user-auth/login', async (request, response) => {
+  const credentialErrors = validateAccountCredentials(request.body);
+
+  if (Object.keys(credentialErrors).length > 0) {
+    response.status(400).json({ error: 'Email and password are required.', errors: credentialErrors });
+    return;
+  }
+
+  try {
+    const user = await authenticateUserAccount({
+      email: request.body.email,
+      password: request.body.password,
+    });
+
+    response.json(user);
+  } catch (error) {
+    response.status(getErrorStatus(error)).json({ error: error.message || 'Unable to login right now.' });
   }
 });
 

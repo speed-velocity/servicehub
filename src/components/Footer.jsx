@@ -53,10 +53,16 @@ const Footer = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-            {['Privacy Policy', 'Terms of Service', 'Support'].map((link) => (
+            {[
+              { label: 'Privacy Policy', href: '#' },
+              { label: 'Terms of Service', href: '#' },
+              { label: 'Support', href: '#' },
+              { label: 'User Account', href: '/account' },
+              { label: 'Worker Portal', href: '/worker' },
+            ].map((link) => (
               <a
-                key={link}
-                href="#"
+                key={link.label}
+                href={link.href}
                 style={{
                   color: '#6b7280',
                   textDecoration: 'none',
@@ -70,7 +76,7 @@ const Footer = () => {
                   event.target.style.color = '#6b7280';
                 }}
               >
-                {link}
+                {link.label}
               </a>
             ))}
           </div>

@@ -3,25 +3,25 @@ import Header from './components/Header';
 import Hero from './components/Hero';
 import ServicesSection from './components/ServicesSection';
 import AboutSection from './components/AboutSection';
-import WorkersSection from './components/WorkersSection';
 import Footer from './components/Footer';
 import BookingModal from './components/BookingModal';
+import PortalHeader from './components/PortalHeader';
+import WorkerPortalPage from './components/WorkerPortalPage';
+import UserAuthPage from './components/UserAuthPage';
 import './index.css';
 import { serviceOptions } from './constants/services';
-import {
-  createWorker,
-  listenToWorkers,
-  lookupWorkerByPhone,
-  toggleWorkerAvailability,
-  updateWorkerLocation,
-} from './services/workers';
 import { reverseGeocodeLocation } from './services/geocoding';
+import { loginUserAccount, loginWorkerAccount, registerUserAccount, registerWorkerAccount } from './services/auth';
+import { listenToWorkers, toggleWorkerAvailability, updateWorkerLocation } from './services/workers';
 
 const emptyForm = {
   name: '',
   phone: '',
   address: '',
 };
+
+const workerSessionStorageKey = 'servicehub_worker_session';
+const userSessionStorageKey = 'servicehub_user_session';
 
 const normalizeText = (value) =>
   value
@@ -74,10 +74,22 @@ const getDistanceInKm = (fromLocation, toLocation) => {
   return earthRadiusKm * angularDistance;
 };
 
-const workerSessionStorageKey = 'servicehub_worker_session';
+const getInitialRoute = () => {
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+
+  if (path === '/worker') {
+    return '/worker';
+  }
+
+  if (path === '/account') {
+    return '/account';
+  }
+
+  return '/';
+};
 
 function App() {
-  const [selectedService, setSelectedService] = useState('');
+  const route = getInitialRoute();
   const [bookingService, setBookingService] = useState('');
   const [bookingLocation, setBookingLocation] = useState(null);
   const [showBookingServiceSelect, setShowBookingServiceSelect] = useState(false);
@@ -93,7 +105,10 @@ function App() {
   const [isLoggingInWorker, setIsLoggingInWorker] = useState(false);
   const [workerRegistrationError, setWorkerRegistrationError] = useState('');
   const [workerLoginError, setWorkerLoginError] = useState('');
-  const [highlightedWorkerId, setHighlightedWorkerId] = useState('');
+  const [isRegisteringUser, setIsRegisteringUser] = useState(false);
+  const [isLoggingInUser, setIsLoggingInUser] = useState(false);
+  const [userRegistrationError, setUserRegistrationError] = useState('');
+  const [userLoginError, setUserLoginError] = useState('');
   const [isResolvingBookingAddress, setIsResolvingBookingAddress] = useState(false);
   const [workerSession, setWorkerSession] = useState(() => {
     const savedSession = window.localStorage.getItem(workerSessionStorageKey);
@@ -108,9 +123,22 @@ function App() {
       return null;
     }
   });
+  const [userSession, setUserSession] = useState(() => {
+    const savedSession = window.localStorage.getItem(userSessionStorageKey);
+
+    if (!savedSession) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(savedSession);
+    } catch {
+      return null;
+    }
+  });
   const [locationShareState, setLocationShareState] = useState({
     status: 'idle',
-    message: 'Login and go available to share live worker location.',
+    message: 'Sign in and go available to share live worker location.',
   });
   const watchIdRef = useRef(null);
   const lastSentLocationRef = useRef(null);
@@ -134,28 +162,6 @@ function App() {
 
     return unsubscribe;
   }, []);
-
-  useEffect(() => {
-    if (!highlightedWorkerId) {
-      return undefined;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      setHighlightedWorkerId('');
-    }, 2500);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [highlightedWorkerId]);
-
-  const filteredWorkers = useMemo(() => {
-    if (!selectedService) {
-      return workers;
-    }
-
-    return workers.filter((worker) => worker.service === selectedService);
-  }, [selectedService, workers]);
 
   const sessionWorker = useMemo(() => {
     if (!workerSession?.id) {
@@ -224,6 +230,26 @@ function App() {
   }, [workerSession]);
 
   useEffect(() => {
+    if (!userSession) {
+      window.localStorage.removeItem(userSessionStorageKey);
+      return;
+    }
+
+    window.localStorage.setItem(userSessionStorageKey, JSON.stringify(userSession));
+  }, [userSession]);
+
+  useEffect(() => {
+    if (!workerSession || workersLoading) {
+      return;
+    }
+
+    if (!sessionWorker) {
+      setWorkerSession(null);
+      setWorkerLoginError('Your worker session expired. Please sign in again.');
+    }
+  }, [workerSession, sessionWorker, workersLoading]);
+
+  useEffect(() => {
     if (!workerSession || !sessionWorker?.available) {
       if (watchIdRef.current != null) {
         navigator.geolocation?.clearWatch(watchIdRef.current);
@@ -235,8 +261,8 @@ function App() {
       setLocationShareState({
         status: workerSession ? 'paused' : 'idle',
         message: workerSession
-          ? 'You are logged in. Go available to share live location with users.'
-          : 'Login and go available to share live worker location.',
+          ? 'You are signed in. Go available to share live location with users.'
+          : 'Sign in and go available to share live worker location.',
       });
       return undefined;
     }
@@ -326,7 +352,6 @@ function App() {
   };
 
   const handleServiceSelect = (service) => {
-    setSelectedService(service);
     openBooking(service);
   };
 
@@ -374,9 +399,8 @@ function App() {
       phone: bookingForm.phone.trim(),
       address: bookingForm.address.trim(),
     };
-
-    const nextErrors = {};
     const trimmedService = bookingService.trim();
+    const nextErrors = {};
 
     if (!trimmedService) {
       nextErrors.service = 'Please choose a service.';
@@ -470,41 +494,49 @@ function App() {
     }
   };
 
-  const handleRegisterWorker = async (worker) => {
+  const handleRegisterWorker = async ({ email, password, workerProfile }) => {
     setIsRegisteringWorker(true);
     setWorkerRegistrationError('');
+    setWorkerLoginError('');
 
     try {
-      const createdWorker = await createWorker(worker);
-      setSelectedService(createdWorker.service);
-      setHighlightedWorkerId(createdWorker.id);
-      setWorkerSession({
-        id: createdWorker.id,
-        phone: createdWorker.phone,
+      const worker = await registerWorkerAccount({
+        email,
+        password,
+        workerProfile,
       });
-      setWorkerLoginError('');
+
+      setWorkerSession({
+        id: worker.id,
+        email,
+      });
+      return worker;
     } catch (error) {
-      setWorkerRegistrationError(error.message || 'Unable to register the worker right now.');
+      setWorkerRegistrationError(error.message || 'Unable to register the worker account right now.');
       throw error;
     } finally {
       setIsRegisteringWorker(false);
     }
   };
 
-  const handleLoginWorker = async (phone) => {
+  const handleLoginWorker = async ({ email, password }) => {
     setIsLoggingInWorker(true);
     setWorkerLoginError('');
+    setWorkerRegistrationError('');
 
     try {
-      const worker = await lookupWorkerByPhone(phone);
+      const worker = await loginWorkerAccount({
+        email,
+        password,
+      });
+
       setWorkerSession({
         id: worker.id,
-        phone: worker.phone,
+        email,
       });
-      setSelectedService(worker.service);
-      setHighlightedWorkerId(worker.id);
+      return worker;
     } catch (error) {
-      setWorkerLoginError(error.message || 'Unable to login worker right now.');
+      setWorkerLoginError(error.message || 'Unable to sign in worker right now.');
       throw error;
     } finally {
       setIsLoggingInWorker(false);
@@ -522,11 +554,95 @@ function App() {
 
     setWorkerSession(null);
     setWorkerLoginError('');
+    setWorkerRegistrationError('');
     setLocationShareState({
       status: 'idle',
-      message: 'Login and go available to share live worker location.',
+      message: 'Sign in and go available to share live worker location.',
     });
   };
+
+  const handleRegisterUser = async ({ email, password }) => {
+    setIsRegisteringUser(true);
+    setUserRegistrationError('');
+    setUserLoginError('');
+
+    try {
+      const user = await registerUserAccount({ email, password });
+      setUserSession(user);
+      return user;
+    } catch (error) {
+      setUserRegistrationError(error.message || 'Unable to create your user account right now.');
+      throw error;
+    } finally {
+      setIsRegisteringUser(false);
+    }
+  };
+
+  const handleLoginUser = async ({ email, password }) => {
+    setIsLoggingInUser(true);
+    setUserLoginError('');
+    setUserRegistrationError('');
+
+    try {
+      const user = await loginUserAccount({ email, password });
+      setUserSession(user);
+      return user;
+    } catch (error) {
+      setUserLoginError(error.message || 'Unable to login right now.');
+      throw error;
+    } finally {
+      setIsLoggingInUser(false);
+    }
+  };
+
+  const handleLogoutUser = () => {
+    setUserSession(null);
+    setUserLoginError('');
+    setUserRegistrationError('');
+  };
+
+  if (route === '/worker') {
+    return (
+      <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
+        <PortalHeader activePath="/worker" />
+        <WorkerPortalPage
+          sessionWorker={sessionWorker}
+          workerSession={workerSession}
+          workersLoading={workersLoading}
+          isRegisteringWorker={isRegisteringWorker}
+          isLoggingInWorker={isLoggingInWorker}
+          isUpdatingAvailability={workerActionId === sessionWorker?.id}
+          registrationError={workerRegistrationError || workersError}
+          loginError={workerLoginError}
+          locationShareState={locationShareState}
+          onRegisterWorker={handleRegisterWorker}
+          onLoginWorker={handleLoginWorker}
+          onLogoutWorker={handleLogoutWorker}
+          onToggleAvailability={handleToggleWorkerAvailability}
+        />
+        <Footer />
+      </div>
+    );
+  }
+
+  if (route === '/account') {
+    return (
+      <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
+        <PortalHeader activePath="/account" />
+        <UserAuthPage
+          userSession={userSession}
+          isRegisteringUser={isRegisteringUser}
+          isLoggingInUser={isLoggingInUser}
+          userRegistrationError={userRegistrationError}
+          userLoginError={userLoginError}
+          onRegisterUser={handleRegisterUser}
+          onLoginUser={handleLoginUser}
+          onLogoutUser={handleLogoutUser}
+        />
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
@@ -537,24 +653,6 @@ function App() {
           onExploreServices={handleExploreServices}
         />
         <ServicesSection onServiceSelect={handleServiceSelect} />
-        <WorkersSection
-          selectedService={selectedService}
-          workers={filteredWorkers}
-          isLoading={workersLoading}
-          error={workersError}
-          workerActionId={workerActionId}
-          isRegisteringWorker={isRegisteringWorker}
-          isLoggingInWorker={isLoggingInWorker}
-          registrationError={workerRegistrationError}
-          loginError={workerLoginError}
-          highlightedWorkerId={highlightedWorkerId}
-          sessionWorker={sessionWorker}
-          locationShareState={locationShareState}
-          onRegisterWorker={handleRegisterWorker}
-          onLoginWorker={handleLoginWorker}
-          onLogoutWorker={handleLogoutWorker}
-          onToggleAvailability={handleToggleWorkerAvailability}
-        />
         <AboutSection />
       </main>
       <Footer />
