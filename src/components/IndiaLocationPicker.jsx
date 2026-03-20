@@ -1,37 +1,59 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CircleMarker, MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const indiaCenter = [22.5937, 78.9629];
 
-const MapResizeFix = () => {
+const MapResizeFix = ({ isVisible }) => {
   const map = useMap();
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       map.invalidateSize();
-    }, 200);
+    }, isVisible ? 90 : 0);
 
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [map]);
+  }, [isVisible, map]);
 
   return null;
 };
 
 const MapViewportController = ({ selectedLocation }) => {
   const map = useMap();
+  const previousLocationRef = useRef(null);
 
   useEffect(() => {
     if (!selectedLocation) {
       return;
     }
 
-    map.flyTo([selectedLocation.lat, selectedLocation.lng], 16, {
-      animate: true,
-      duration: 1.2,
-    });
+    const nextCenter = [selectedLocation.lat, selectedLocation.lng];
+    const previousLocation = previousLocationRef.current;
+
+    if (!previousLocation) {
+      map.setView(nextCenter, selectedLocation.source === 'device' ? 15 : map.getZoom(), {
+        animate: false,
+      });
+      previousLocationRef.current = selectedLocation;
+      return;
+    }
+
+    if (selectedLocation.source === 'device') {
+      map.flyTo(nextCenter, 15, {
+        animate: true,
+        duration: 0.45,
+        easeLinearity: 0.35,
+      });
+    } else {
+      map.panTo(nextCenter, {
+        animate: true,
+        duration: 0.25,
+      });
+    }
+
+    previousLocationRef.current = selectedLocation;
   }, [map, selectedLocation]);
 
   return null;
@@ -51,7 +73,8 @@ const MapClickHandler = ({ onPick }) => {
   return null;
 };
 
-const IndiaLocationPicker = ({ selectedLocation, onPick }) => {
+const IndiaLocationPicker = ({ isVisible, selectedLocation, onPick }) => {
+  const hasRequestedLocationRef = useRef(false);
   const [locationState, setLocationState] = useState({
     status: 'idle',
     message: 'Turn on device location and use the map to choose your service address.',
@@ -99,14 +122,20 @@ const IndiaLocationPicker = ({ selectedLocation, onPick }) => {
   }, [onPick]);
 
   useEffect(() => {
+    if (!isVisible || hasRequestedLocationRef.current) {
+      return;
+    }
+
+    hasRequestedLocationRef.current = true;
+
     const timeoutId = window.setTimeout(() => {
       requestCurrentLocation();
-    }, 0);
+    }, 60);
 
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [requestCurrentLocation]);
+  }, [isVisible, requestCurrentLocation]);
 
   return (
     <div className="booking-map-shell">
@@ -130,9 +159,12 @@ const IndiaLocationPicker = ({ selectedLocation, onPick }) => {
           zoom={4}
           minZoom={4}
           scrollWheelZoom={true}
+          zoomAnimation={false}
+          fadeAnimation={true}
+          markerZoomAnimation={false}
           className="booking-map"
         >
-          <MapResizeFix />
+          <MapResizeFix isVisible={isVisible} />
           <MapViewportController selectedLocation={selectedLocation} />
           <MapClickHandler onPick={onPick} />
           <TileLayer

@@ -202,12 +202,13 @@ const BookingModal = ({
                   placeholder="Enter your service address"
                   rows="4"
                 />
-                {showMapPicker ? (
+                <div className={`booking-map-region${showMapPicker ? ' open' : ''}`}>
                   <IndiaLocationPicker
+                    isVisible={showMapPicker}
                     selectedLocation={selectedLocation}
                     onPick={onLocationPick}
                   />
-                ) : null}
+                </div>
                 {formErrors.address && <small>{formErrors.address}</small>}
               </label>
 

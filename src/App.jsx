@@ -184,7 +184,7 @@ function App() {
     const prefix = source === 'device' ? 'Current device location' : 'Pinned from India map';
     const nextAddress = `${prefix}: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 
-    setBookingLocation({ lat, lng });
+    setBookingLocation({ lat, lng, source });
     setBookingForm((currentForm) => ({
       ...currentForm,
       address: nextAddress,
