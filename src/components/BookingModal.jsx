@@ -9,6 +9,7 @@ const BookingModal = ({
   formData,
   formErrors,
   confirmedBooking,
+  isResolvingAddress,
   selectedLocation,
   onClose,
   onChange,
@@ -202,6 +203,9 @@ const BookingModal = ({
                   placeholder="Enter your service address"
                   rows="4"
                 />
+                {isResolvingAddress ? (
+                  <p className="booking-address-status">Fetching locality details from your selected location...</p>
+                ) : null}
                 <div className={`booking-map-region${showMapPicker ? ' open' : ''}`}>
                   <IndiaLocationPicker
                     isVisible={showMapPicker}

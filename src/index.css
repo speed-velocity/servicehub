@@ -689,6 +689,12 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   font-size: 0.8rem;
 }
 
+.booking-address-status {
+  color: #bfdbfe;
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
 .booking-map-toggle {
   border: 1px solid rgba(59, 130, 246, 0.26);
   border-radius: 999px;

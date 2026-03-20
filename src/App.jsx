@@ -13,6 +13,7 @@ import {
   listenToWorkers,
   toggleWorkerAvailability,
 } from './services/workers';
+import { reverseGeocodeLocation } from './services/geocoding';
 
 const emptyForm = {
   name: '',
@@ -36,6 +37,7 @@ function App() {
   const [isRegisteringWorker, setIsRegisteringWorker] = useState(false);
   const [workerRegistrationError, setWorkerRegistrationError] = useState('');
   const [highlightedWorkerId, setHighlightedWorkerId] = useState('');
+  const [isResolvingBookingAddress, setIsResolvingBookingAddress] = useState(false);
 
   useEffect(() => {
     setWorkersLoading(true);
@@ -93,6 +95,7 @@ function App() {
     setFormErrors({});
     setBookingService('');
     setBookingLocation(null);
+    setIsResolvingBookingAddress(false);
     setShowBookingServiceSelect(false);
   };
 
@@ -176,18 +179,19 @@ function App() {
     });
     setBookingService('');
     setBookingLocation(null);
+    setIsResolvingBookingAddress(false);
     setBookingForm(emptyForm);
     setFormErrors({});
   };
 
-  const handleMapLocationSelect = ({ lat, lng, source = 'map' }) => {
+  const handleMapLocationSelect = async ({ lat, lng, source = 'map' }) => {
     const prefix = source === 'device' ? 'Current device location' : 'Pinned from India map';
-    const nextAddress = `${prefix}: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    const fallbackAddress = `${prefix}: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 
     setBookingLocation({ lat, lng, source });
     setBookingForm((currentForm) => ({
       ...currentForm,
-      address: nextAddress,
+      address: source === 'device' ? 'Finding your nearby locality...' : fallbackAddress,
     }));
 
     setFormErrors((currentErrors) => {
@@ -200,6 +204,24 @@ function App() {
         address: '',
       };
     });
+
+    setIsResolvingBookingAddress(true);
+
+    try {
+      const resolvedAddress = await reverseGeocodeLocation(lat, lng);
+
+      setBookingForm((currentForm) => ({
+        ...currentForm,
+        address: resolvedAddress,
+      }));
+    } catch {
+      setBookingForm((currentForm) => ({
+        ...currentForm,
+        address: fallbackAddress,
+      }));
+    } finally {
+      setIsResolvingBookingAddress(false);
+    }
   };
 
   const handleExploreServices = () => {
@@ -270,6 +292,7 @@ function App() {
         formData={bookingForm}
         formErrors={formErrors}
         confirmedBooking={confirmedBooking}
+        isResolvingAddress={isResolvingBookingAddress}
         selectedLocation={bookingLocation}
         onClose={closeBooking}
         onChange={handleInputChange}
