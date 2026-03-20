@@ -130,7 +130,7 @@ app.patch('/api/workers/:workerId/availability', async (request, response) => {
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(distPath));
 
-  app.get('*', (_request, response) => {
+  app.use((_request, response) => {
     response.sendFile(path.join(distPath, 'index.html'));
   });
 }
