@@ -645,6 +645,17 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   -webkit-backdrop-filter: blur(14px);
 }
 
+.booking-field select {
+  appearance: none;
+  -webkit-appearance: none;
+  color-scheme: dark;
+}
+
+.booking-field select option {
+  background: #0f172a;
+  color: #f8fafc;
+}
+
 .booking-field input::placeholder,
 .booking-field textarea::placeholder {
   color: #6b7280;
