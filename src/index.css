@@ -875,6 +875,24 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   margin-bottom: 0.8rem;
 }
 
+.booking-worker-badges {
+  display: grid;
+  justify-items: end;
+  gap: 0.45rem;
+}
+
+.booking-distance-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.28rem 0.75rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.05);
+}
+
 .booking-worker-call {
   display: inline-flex;
   justify-content: center;

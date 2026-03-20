@@ -170,14 +170,14 @@ function App() {
       return [];
     }
 
-    return workers
+    const sortedWorkers = workers
       .filter((worker) => worker.available && worker.service === confirmedBooking.service)
       .map((worker) => ({
         ...worker,
         locationScore: getLocationMatchScore(confirmedBooking.address, worker.location),
         distanceKm:
-          bookingLocation && worker.latitude != null && worker.longitude != null
-            ? getDistanceInKm(bookingLocation, { lat: worker.latitude, lng: worker.longitude })
+          confirmedBooking.locationCoordinates && worker.latitude != null && worker.longitude != null
+            ? getDistanceInKm(confirmedBooking.locationCoordinates, { lat: worker.latitude, lng: worker.longitude })
             : null,
       }))
       .sort((leftWorker, rightWorker) => {
@@ -201,7 +201,18 @@ function App() {
 
         return leftWorker.name.localeCompare(rightWorker.name);
       });
-  }, [bookingLocation, confirmedBooking, workers]);
+
+    const nearestWorkerId = sortedWorkers.find((worker) => worker.distanceKm != null)?.id || null;
+
+    return sortedWorkers.map((worker) => ({
+      ...worker,
+      isNearest: nearestWorkerId != null && worker.id === nearestWorkerId,
+      distanceLabel:
+        worker.distanceKm != null
+          ? `${worker.distanceKm.toFixed(1)} km away`
+          : 'Distance unavailable',
+    }));
+  }, [confirmedBooking, workers]);
 
   useEffect(() => {
     if (!workerSession) {
@@ -391,9 +402,9 @@ function App() {
     setConfirmedBooking({
       ...trimmedForm,
       service: trimmedService,
+      locationCoordinates: bookingLocation ? { lat: bookingLocation.lat, lng: bookingLocation.lng } : null,
     });
     setBookingService('');
-    setBookingLocation(null);
     setIsResolvingBookingAddress(false);
     setBookingForm(emptyForm);
     setFormErrors({});

@@ -25,23 +25,47 @@ const pool = createPool();
 
 const normalizePhone = (value = '') => value.replace(/[^\d+]/g, '').trim();
 
-const memoryWorkers = [
+const defaultWorkers = [
   {
-    id: crypto.randomUUID(),
     name: 'Rahul Verma',
     service: 'Electrician',
-    location: 'Bangalore',
+    location: 'Bhubaneswar',
     phone: '+919876543210',
-    latitude: 12.9716,
-    longitude: 77.5946,
-    currentLocation: 'MG Road, Bangalore, Karnataka, India',
+    latitude: 20.2961,
+    longitude: 85.8245,
+    currentLocation: 'Unit 4, Bhubaneswar, Odisha, India',
     lastSeenAt: Date.now() - 1000 * 60 * 2,
     available: true,
     createdAt: Date.now() - 1000 * 60 * 30,
     updatedAt: Date.now() - 1000 * 60 * 2,
   },
   {
-    id: crypto.randomUUID(),
+    name: 'Amit Nayak',
+    service: 'Electrician',
+    location: 'Bhubaneswar',
+    phone: '+919845612347',
+    latitude: 20.3158,
+    longitude: 85.8232,
+    currentLocation: 'Patia, Bhubaneswar, Odisha, India',
+    lastSeenAt: Date.now() - 1000 * 60 * 4,
+    available: true,
+    createdAt: Date.now() - 1000 * 60 * 28,
+    updatedAt: Date.now() - 1000 * 60 * 4,
+  },
+  {
+    name: 'Suresh Sahu',
+    service: 'Electrician',
+    location: 'Cuttack',
+    phone: '+919934455667',
+    latitude: 20.4625,
+    longitude: 85.8828,
+    currentLocation: 'Badambadi, Cuttack, Odisha, India',
+    lastSeenAt: Date.now() - 1000 * 60 * 6,
+    available: true,
+    createdAt: Date.now() - 1000 * 60 * 24,
+    updatedAt: Date.now() - 1000 * 60 * 6,
+  },
+  {
     name: 'Anita Sharma',
     service: 'Plumber',
     location: 'Mumbai',
@@ -54,7 +78,39 @@ const memoryWorkers = [
     createdAt: Date.now() - 1000 * 60 * 20,
     updatedAt: Date.now() - 1000 * 60 * 10,
   },
+  {
+    name: 'Kiran Behera',
+    service: 'Plumber',
+    location: 'Bhubaneswar',
+    phone: '+919811223344',
+    latitude: 20.2876,
+    longitude: 85.8417,
+    currentLocation: 'Rasulgarh, Bhubaneswar, Odisha, India',
+    lastSeenAt: Date.now() - 1000 * 60 * 3,
+    available: true,
+    createdAt: Date.now() - 1000 * 60 * 18,
+    updatedAt: Date.now() - 1000 * 60 * 3,
+  },
+  {
+    name: 'Priya Das',
+    service: 'Cleaner',
+    location: 'Bhubaneswar',
+    phone: '+919900112233',
+    latitude: 20.3009,
+    longitude: 85.8047,
+    currentLocation: 'Saheed Nagar, Bhubaneswar, Odisha, India',
+    lastSeenAt: Date.now() - 1000 * 60 * 5,
+    available: true,
+    createdAt: Date.now() - 1000 * 60 * 15,
+    updatedAt: Date.now() - 1000 * 60 * 5,
+  },
 ];
+
+const memoryWorkers = defaultWorkers.map((worker) => ({
+  id: crypto.randomUUID(),
+  ...worker,
+  phone: normalizePhone(worker.phone),
+}));
 
 const sortWorkers = (workers) =>
   [...workers].sort((leftWorker, rightWorker) => {
@@ -139,6 +195,44 @@ export const ensureDatabaseReady = async () => {
     CREATE INDEX IF NOT EXISTS workers_service_idx
     ON workers(service);
   `);
+
+  const countResult = await pool.query(`SELECT COUNT(*)::INTEGER AS count FROM workers;`);
+  const workerCount = countResult.rows[0]?.count || 0;
+
+  if (workerCount === 0) {
+    for (const worker of defaultWorkers) {
+      await pool.query(
+        `
+          INSERT INTO workers (
+            id,
+            name,
+            service,
+            location,
+            phone,
+            latitude,
+            longitude,
+            current_location,
+            last_seen_at,
+            available,
+            created_at,
+            updated_at
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9, NOW(), NOW());
+        `,
+        [
+          crypto.randomUUID(),
+          worker.name,
+          worker.service,
+          worker.location,
+          normalizePhone(worker.phone),
+          worker.latitude,
+          worker.longitude,
+          worker.currentLocation,
+          worker.available,
+        ]
+      );
+    }
+  }
 };
 
 export const listWorkers = async () => {
