@@ -145,6 +145,7 @@ function App() {
   });
   const watchIdRef = useRef(null);
   const lastSentLocationRef = useRef(null);
+  const hasActiveSession = Boolean(userSession || workerSession);
 
   useEffect(() => {
     setWorkersLoading(true);
@@ -604,6 +605,21 @@ function App() {
     setUserRegistrationError('');
   };
 
+  const handleHeaderAuthAction = async () => {
+    if (!hasActiveSession) {
+      window.location.href = '/signup';
+      return;
+    }
+
+    if (workerSession) {
+      await handleLogoutWorker();
+    }
+
+    if (userSession) {
+      handleLogoutUser();
+    }
+  };
+
   if (route === '/worker' || route === '/account' || route === '/signup') {
     const initialMode =
       route === '/worker' ? 'worker-register' : route === '/account' ? 'user-register' : 'user-register';
@@ -642,7 +658,11 @@ function App() {
 
   return (
     <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
-      <Header onBookNow={() => openBooking()} />
+      <Header
+        authActionLabel={hasActiveSession ? 'Logout' : 'Sign Up / Login'}
+        onAuthAction={handleHeaderAuthAction}
+        onBookNow={() => openBooking()}
+      />
       <main>
         <Hero
           onBookNow={() => openBooking()}

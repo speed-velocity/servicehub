@@ -7,7 +7,7 @@ const navLinks = [
   { id: 'contact', label: 'Contact' },
 ];
 
-const Header = ({ onBookNow }) => {
+const Header = ({ onAuthAction, authActionLabel = 'Sign Up / Login', onBookNow }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeLink, setActiveLink] = useState('home');
@@ -151,6 +151,13 @@ const Header = ({ onBookNow }) => {
             </a>
           ))}
           <button
+            type="button"
+            className="btn-outline desktop-auth-btn"
+            onClick={onAuthAction}
+          >
+            {authActionLabel}
+          </button>
+          <button
             className="btn-primary desktop-book-btn"
             style={{ padding: '0.6rem 1.5rem', fontSize: '0.9rem' }}
             onClick={onBookNow}
@@ -215,6 +222,17 @@ const Header = ({ onBookNow }) => {
               {link.label}
             </a>
           ))}
+          <button
+            type="button"
+            className="btn-outline mobile-auth-btn"
+            style={{ width: '100%' }}
+            onClick={() => {
+              setMobileMenuOpen(false);
+              onAuthAction?.();
+            }}
+          >
+            {authActionLabel}
+          </button>
           <button
             className="btn-primary"
             style={{ marginTop: '0.5rem', width: '100%' }}
