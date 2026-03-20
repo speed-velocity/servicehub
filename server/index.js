@@ -6,9 +6,11 @@ import express from 'express';
 import {
   createWorker,
   ensureDatabaseReady,
+  findWorkerByPhone,
   hasDatabaseConnection,
   listWorkers,
   updateWorkerAvailability,
+  updateWorkerLocation,
 } from './db.js';
 
 const app = express();
@@ -36,6 +38,36 @@ const buildReadableAddress = (address, fallback) => {
   const uniqueParts = parts.filter((part, index) => parts.indexOf(part) === index);
 
   return uniqueParts.length > 0 ? uniqueParts.join(', ') : fallback;
+};
+
+const reverseGeocodeCoordinates = async (lat, lng) => {
+  const searchParams = new URLSearchParams({
+    format: 'jsonv2',
+    lat: String(lat),
+    lon: String(lng),
+    addressdetails: '1',
+    zoom: '18',
+    'accept-language': 'en',
+  });
+
+  const nominatimResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?${searchParams.toString()}`, {
+    headers: {
+      Accept: 'application/json',
+      'User-Agent': 'ServiceHub/1.0 (support: servicehub render app)',
+    },
+  });
+
+  if (!nominatimResponse.ok) {
+    throw new Error('Unable to resolve location details right now.');
+  }
+
+  const payload = await nominatimResponse.json();
+  const fallback = payload.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+  return {
+    address: buildReadableAddress(payload.address, fallback),
+    displayName: payload.display_name || fallback,
+  };
 };
 
 const sendWorkers = async (response) => {
@@ -98,36 +130,32 @@ app.get('/api/geocode/reverse', async (request, response) => {
   }
 
   try {
-    const searchParams = new URLSearchParams({
-      format: 'jsonv2',
-      lat: String(lat),
-      lon: String(lng),
-      addressdetails: '1',
-      zoom: '18',
-      'accept-language': 'en',
-    });
+    const result = await reverseGeocodeCoordinates(lat, lng);
+    response.json(result);
+  } catch (error) {
+    response.status(502).json({ error: error.message || 'Unable to resolve location details right now.' });
+  }
+});
 
-    const nominatimResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?${searchParams.toString()}`, {
-      headers: {
-        Accept: 'application/json',
-        'User-Agent': 'ServiceHub/1.0 (support: servicehub render app)',
-      },
-    });
+app.get('/api/workers/login', async (request, response) => {
+  const phone = request.query.phone;
 
-    if (!nominatimResponse.ok) {
-      response.status(502).json({ error: 'Unable to resolve location details right now.' });
+  if (!phone) {
+    response.status(400).json({ error: 'Phone is required.' });
+    return;
+  }
+
+  try {
+    const worker = await findWorkerByPhone(String(phone));
+
+    if (!worker) {
+      response.status(404).json({ error: 'Worker not found for this phone number.' });
       return;
     }
 
-    const payload = await nominatimResponse.json();
-    const fallback = payload.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-
-    response.json({
-      address: buildReadableAddress(payload.address, fallback),
-      displayName: payload.display_name || fallback,
-    });
+    response.json(worker);
   } catch (error) {
-    response.status(500).json({ error: error.message || 'Unable to resolve location details right now.' });
+    response.status(500).json({ error: error.message || 'Unable to look up the worker right now.' });
   }
 });
 
@@ -190,6 +218,31 @@ app.patch('/api/workers/:workerId/availability', async (request, response) => {
   } catch (error) {
     const status = error.message === 'Worker not found.' ? 404 : 500;
     response.status(status).json({ error: error.message || 'Unable to update worker.' });
+  }
+});
+
+app.patch('/api/workers/:workerId/location', async (request, response) => {
+  const latitude = Number(request.body.latitude);
+  const longitude = Number(request.body.longitude);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    response.status(400).json({ error: 'Valid latitude and longitude are required.' });
+    return;
+  }
+
+  try {
+    const geocodedLocation = await reverseGeocodeCoordinates(latitude, longitude);
+    const worker = await updateWorkerLocation(request.params.workerId, {
+      latitude,
+      longitude,
+      currentLocation: geocodedLocation.address,
+    });
+
+    await broadcastWorkers();
+    response.json(worker);
+  } catch (error) {
+    const status = error.message === 'Worker not found.' ? 404 : 500;
+    response.status(status).json({ error: error.message || 'Unable to update worker location.' });
   }
 });
 

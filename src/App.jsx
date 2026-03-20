@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import ServicesSection from './components/ServicesSection';
@@ -11,7 +11,9 @@ import { serviceOptions } from './constants/services';
 import {
   createWorker,
   listenToWorkers,
+  lookupWorkerByPhone,
   toggleWorkerAvailability,
+  updateWorkerLocation,
 } from './services/workers';
 import { reverseGeocodeLocation } from './services/geocoding';
 
@@ -47,6 +49,33 @@ const getLocationMatchScore = (address, workerLocation) => {
   return sharedTokens.length;
 };
 
+const toRadians = (value) => (value * Math.PI) / 180;
+
+const getDistanceInKm = (fromLocation, toLocation) => {
+  if (!fromLocation || !toLocation) {
+    return null;
+  }
+
+  const earthRadiusKm = 6371;
+  const deltaLatitude = toRadians(toLocation.lat - fromLocation.lat);
+  const deltaLongitude = toRadians(toLocation.lng - fromLocation.lng);
+  const fromLatitude = toRadians(fromLocation.lat);
+  const toLatitude = toRadians(toLocation.lat);
+
+  const haversineValue =
+    Math.sin(deltaLatitude / 2) * Math.sin(deltaLatitude / 2) +
+    Math.cos(fromLatitude) *
+      Math.cos(toLatitude) *
+      Math.sin(deltaLongitude / 2) *
+      Math.sin(deltaLongitude / 2);
+
+  const angularDistance = 2 * Math.atan2(Math.sqrt(haversineValue), Math.sqrt(1 - haversineValue));
+
+  return earthRadiusKm * angularDistance;
+};
+
+const workerSessionStorageKey = 'servicehub_worker_session';
+
 function App() {
   const [selectedService, setSelectedService] = useState('');
   const [bookingService, setBookingService] = useState('');
@@ -61,9 +90,30 @@ function App() {
   const [workersError, setWorkersError] = useState('');
   const [workerActionId, setWorkerActionId] = useState('');
   const [isRegisteringWorker, setIsRegisteringWorker] = useState(false);
+  const [isLoggingInWorker, setIsLoggingInWorker] = useState(false);
   const [workerRegistrationError, setWorkerRegistrationError] = useState('');
+  const [workerLoginError, setWorkerLoginError] = useState('');
   const [highlightedWorkerId, setHighlightedWorkerId] = useState('');
   const [isResolvingBookingAddress, setIsResolvingBookingAddress] = useState(false);
+  const [workerSession, setWorkerSession] = useState(() => {
+    const savedSession = window.localStorage.getItem(workerSessionStorageKey);
+
+    if (!savedSession) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(savedSession);
+    } catch {
+      return null;
+    }
+  });
+  const [locationShareState, setLocationShareState] = useState({
+    status: 'idle',
+    message: 'Login and go available to share live worker location.',
+  });
+  const watchIdRef = useRef(null);
+  const lastSentLocationRef = useRef(null);
 
   useEffect(() => {
     setWorkersLoading(true);
@@ -107,6 +157,14 @@ function App() {
     return workers.filter((worker) => worker.service === selectedService);
   }, [selectedService, workers]);
 
+  const sessionWorker = useMemo(() => {
+    if (!workerSession?.id) {
+      return null;
+    }
+
+    return workers.find((worker) => worker.id === workerSession.id) || null;
+  }, [workerSession, workers]);
+
   const matchedWorkers = useMemo(() => {
     if (!confirmedBooking) {
       return [];
@@ -117,8 +175,24 @@ function App() {
       .map((worker) => ({
         ...worker,
         locationScore: getLocationMatchScore(confirmedBooking.address, worker.location),
+        distanceKm:
+          bookingLocation && worker.latitude != null && worker.longitude != null
+            ? getDistanceInKm(bookingLocation, { lat: worker.latitude, lng: worker.longitude })
+            : null,
       }))
       .sort((leftWorker, rightWorker) => {
+        if (leftWorker.distanceKm != null && rightWorker.distanceKm != null) {
+          return leftWorker.distanceKm - rightWorker.distanceKm;
+        }
+
+        if (leftWorker.distanceKm != null) {
+          return -1;
+        }
+
+        if (rightWorker.distanceKm != null) {
+          return 1;
+        }
+
         const locationScoreComparison = rightWorker.locationScore - leftWorker.locationScore;
 
         if (locationScoreComparison !== 0) {
@@ -127,7 +201,100 @@ function App() {
 
         return leftWorker.name.localeCompare(rightWorker.name);
       });
-  }, [confirmedBooking, workers]);
+  }, [bookingLocation, confirmedBooking, workers]);
+
+  useEffect(() => {
+    if (!workerSession) {
+      window.localStorage.removeItem(workerSessionStorageKey);
+      return;
+    }
+
+    window.localStorage.setItem(workerSessionStorageKey, JSON.stringify(workerSession));
+  }, [workerSession]);
+
+  useEffect(() => {
+    if (!workerSession || !sessionWorker?.available) {
+      if (watchIdRef.current != null) {
+        navigator.geolocation?.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+
+      lastSentLocationRef.current = null;
+
+      setLocationShareState({
+        status: workerSession ? 'paused' : 'idle',
+        message: workerSession
+          ? 'You are logged in. Go available to share live location with users.'
+          : 'Login and go available to share live worker location.',
+      });
+      return undefined;
+    }
+
+    if (!navigator.geolocation) {
+      setLocationShareState({
+        status: 'error',
+        message: 'Geolocation is not supported on this device.',
+      });
+      return undefined;
+    }
+
+    setLocationShareState({
+      status: 'sharing',
+      message: 'Sharing your live location with users while you remain available.',
+    });
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const nextLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        const lastSentLocation = lastSentLocationRef.current;
+        const distanceMovedKm = lastSentLocation ? getDistanceInKm(lastSentLocation, nextLocation) : null;
+
+        if (distanceMovedKm != null && distanceMovedKm < 0.03) {
+          return;
+        }
+
+        lastSentLocationRef.current = nextLocation;
+
+        void updateWorkerLocation(sessionWorker.id, {
+          latitude: nextLocation.lat,
+          longitude: nextLocation.lng,
+        })
+          .then(() => {
+            setLocationShareState({
+              status: 'sharing',
+              message: 'Live location is updating for users in real time.',
+            });
+          })
+          .catch((error) => {
+            setLocationShareState({
+              status: 'error',
+              message: error.message || 'Unable to update your live location right now.',
+            });
+          });
+      },
+      () => {
+        setLocationShareState({
+          status: 'error',
+          message: 'Location permission is required to share your live position while available.',
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 15000,
+        timeout: 10000,
+      }
+    );
+
+    return () => {
+      if (watchIdRef.current != null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
+  }, [sessionWorker, workerSession]);
 
   const openBooking = (service = '') => {
     setBookingService(service);
@@ -300,12 +467,54 @@ function App() {
       const createdWorker = await createWorker(worker);
       setSelectedService(createdWorker.service);
       setHighlightedWorkerId(createdWorker.id);
+      setWorkerSession({
+        id: createdWorker.id,
+        phone: createdWorker.phone,
+      });
+      setWorkerLoginError('');
     } catch (error) {
       setWorkerRegistrationError(error.message || 'Unable to register the worker right now.');
       throw error;
     } finally {
       setIsRegisteringWorker(false);
     }
+  };
+
+  const handleLoginWorker = async (phone) => {
+    setIsLoggingInWorker(true);
+    setWorkerLoginError('');
+
+    try {
+      const worker = await lookupWorkerByPhone(phone);
+      setWorkerSession({
+        id: worker.id,
+        phone: worker.phone,
+      });
+      setSelectedService(worker.service);
+      setHighlightedWorkerId(worker.id);
+    } catch (error) {
+      setWorkerLoginError(error.message || 'Unable to login worker right now.');
+      throw error;
+    } finally {
+      setIsLoggingInWorker(false);
+    }
+  };
+
+  const handleLogoutWorker = async () => {
+    if (sessionWorker?.available) {
+      try {
+        await toggleWorkerAvailability(sessionWorker.id, sessionWorker.available);
+      } catch {
+        // Preserve logout even if availability update fails.
+      }
+    }
+
+    setWorkerSession(null);
+    setWorkerLoginError('');
+    setLocationShareState({
+      status: 'idle',
+      message: 'Login and go available to share live worker location.',
+    });
   };
 
   return (
@@ -324,9 +533,15 @@ function App() {
           error={workersError}
           workerActionId={workerActionId}
           isRegisteringWorker={isRegisteringWorker}
+          isLoggingInWorker={isLoggingInWorker}
           registrationError={workerRegistrationError}
+          loginError={workerLoginError}
           highlightedWorkerId={highlightedWorkerId}
+          sessionWorker={sessionWorker}
+          locationShareState={locationShareState}
           onRegisterWorker={handleRegisterWorker}
+          onLoginWorker={handleLoginWorker}
+          onLogoutWorker={handleLogoutWorker}
           onToggleAvailability={handleToggleWorkerAvailability}
         />
         <AboutSection />

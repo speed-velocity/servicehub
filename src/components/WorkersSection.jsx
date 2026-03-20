@@ -1,5 +1,6 @@
 import React from 'react';
 import WorkerRegistrationForm from './WorkerRegistrationForm';
+import WorkerSessionPanel from './WorkerSessionPanel';
 
 const WorkersSection = ({
   selectedService,
@@ -8,9 +9,15 @@ const WorkersSection = ({
   error,
   workerActionId,
   isRegisteringWorker,
+  isLoggingInWorker,
   registrationError,
+  loginError,
   highlightedWorkerId,
+  sessionWorker,
+  locationShareState,
   onRegisterWorker,
+  onLoginWorker,
+  onLogoutWorker,
   onToggleAvailability,
 }) => {
   const heading = selectedService ? `${selectedService} Workers` : 'Available Workers';
@@ -42,6 +49,16 @@ const WorkersSection = ({
           The worker list updates instantly whenever a worker is added or updated.
         </p>
       </div>
+
+      <WorkerSessionPanel
+        sessionWorker={sessionWorker}
+        isLoggingIn={isLoggingInWorker}
+        loginError={loginError}
+        locationShareState={locationShareState}
+        onLogin={onLoginWorker}
+        onLogout={onLogoutWorker}
+        onToggleAvailability={onToggleAvailability}
+      />
 
       <WorkerRegistrationForm
         key={selectedService || 'all-services'}
@@ -91,6 +108,7 @@ const WorkersSection = ({
               </div>
 
               <p className="worker-location">{worker.location}</p>
+              {worker.currentLocation ? <p className="worker-live-location">Live: {worker.currentLocation}</p> : null}
               {worker.phone ? <p className="worker-contact">{worker.phone}</p> : null}
 
               <button

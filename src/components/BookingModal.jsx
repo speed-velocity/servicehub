@@ -122,6 +122,12 @@ const BookingModal = ({
                       </div>
 
                       <p className="worker-location">{worker.location}</p>
+                      {worker.currentLocation ? (
+                        <p className="worker-live-location">Current area: {worker.currentLocation}</p>
+                      ) : null}
+                      {worker.distanceKm != null ? (
+                        <p className="worker-distance">{worker.distanceKm.toFixed(1)} km away</p>
+                      ) : null}
                       {worker.phone ? <p className="worker-contact">{worker.phone}</p> : null}
 
                       {worker.phone ? (

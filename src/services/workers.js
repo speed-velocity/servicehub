@@ -45,6 +45,16 @@ export const createWorker = async (worker) => {
   return parseJsonResponse(response);
 };
 
+export const lookupWorkerByPhone = async (phone) => {
+  const searchParams = new URLSearchParams({
+    phone,
+  });
+
+  const response = await fetch(getApiUrl(`/api/workers/login?${searchParams.toString()}`));
+
+  return parseJsonResponse(response);
+};
+
 export const toggleWorkerAvailability = async (workerId, available) => {
   const response = await fetch(getApiUrl(`/api/workers/${workerId}/availability`), {
     method: 'PATCH',
@@ -52,6 +62,18 @@ export const toggleWorkerAvailability = async (workerId, available) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ available: !available }),
+  });
+
+  return parseJsonResponse(response);
+};
+
+export const updateWorkerLocation = async (workerId, location) => {
+  const response = await fetch(getApiUrl(`/api/workers/${workerId}/location`), {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(location),
   });
 
   return parseJsonResponse(response);
