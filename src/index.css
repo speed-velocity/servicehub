@@ -719,8 +719,11 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
 }
 
 .booking-map-header {
-  display: grid;
-  gap: 0.15rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .booking-map-title {
@@ -734,6 +737,25 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   color: #94a3b8;
   font-size: 0.8rem;
   line-height: 1.6;
+}
+
+.booking-map-locate-btn {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+  padding: 0.55rem 0.9rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 200ms ease, border-color 200ms ease, transform 200ms ease;
+}
+
+.booking-map-locate-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(96, 165, 250, 0.28);
+  transform: translateY(-1px);
 }
 
 .booking-map-frame {
@@ -753,6 +775,14 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
 
 .leaflet-control-attribution {
   font-size: 0.6rem;
+}
+
+.booking-map-hint-loading {
+  color: #bfdbfe;
+}
+
+.booking-map-hint-error {
+  color: #fca5a5;
 }
 
 .booking-summary {

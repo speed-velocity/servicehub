@@ -180,8 +180,9 @@ function App() {
     setFormErrors({});
   };
 
-  const handleMapLocationSelect = ({ lat, lng }) => {
-    const nextAddress = `Pinned from India map: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  const handleMapLocationSelect = ({ lat, lng, source = 'map' }) => {
+    const prefix = source === 'device' ? 'Current device location' : 'Pinned from India map';
+    const nextAddress = `${prefix}: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 
     setBookingLocation({ lat, lng });
     setBookingForm((currentForm) => ({
