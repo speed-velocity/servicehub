@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from 'react';
 
+const navLinks = [
+  { id: 'home', label: 'Home' },
+  { id: 'services', label: 'Services' },
+  { id: 'about', label: 'About' },
+  { id: 'contact', label: 'Contact' },
+];
+
 const Header = ({ onBookNow }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-
-  const navLinks = ['Home', 'Services', 'About', 'Contact'];
+  const [activeLink, setActiveLink] = useState('home');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,6 +24,53 @@ const Header = ({ onBookNow }) => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  useEffect(() => {
+    const sections = navLinks
+      .map((link) => document.getElementById(link.id))
+      .filter(Boolean);
+
+    if (sections.length === 0) {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntry = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((leftEntry, rightEntry) => rightEntry.intersectionRatio - leftEntry.intersectionRatio)[0];
+
+        if (visibleEntry?.target?.id) {
+          setActiveLink(visibleEntry.target.id);
+        }
+      },
+      {
+        rootMargin: '-35% 0px -45% 0px',
+        threshold: [0.2, 0.45, 0.7],
+      }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  const handleNavClick = (sectionId) => {
+    setActiveLink(sectionId);
+
+    const target = document.getElementById(sectionId);
+
+    if (!target) {
+      return;
+    }
+
+    target.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
 
   return (
     <header
@@ -85,8 +138,16 @@ const Header = ({ onBookNow }) => {
           className={`desktop-nav desktop-nav-glass${isScrolled ? ' is-scrolled' : ''}`}
         >
           {navLinks.map((link) => (
-            <a key={link} href="#" className="nav-link desktop-nav-link">
-              {link}
+            <a
+              key={link.id}
+              href={`#${link.id}`}
+              className={`nav-link desktop-nav-link${activeLink === link.id ? ' desktop-nav-link-active' : ''}`}
+              onClick={(event) => {
+                event.preventDefault();
+                handleNavClick(link.id);
+              }}
+            >
+              {link.label}
             </a>
           ))}
           <button
@@ -141,13 +202,17 @@ const Header = ({ onBookNow }) => {
         >
           {navLinks.map((link) => (
             <a
-              key={link}
-              href="#"
-              className="nav-link"
+              key={link.id}
+              href={`#${link.id}`}
+              className={`nav-link${activeLink === link.id ? ' mobile-nav-link-active' : ''}`}
               style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.8)' }}
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={(event) => {
+                event.preventDefault();
+                setMobileMenuOpen(false);
+                handleNavClick(link.id);
+              }}
             >
-              {link}
+              {link.label}
             </a>
           ))}
           <button

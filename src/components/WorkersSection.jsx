@@ -17,6 +17,7 @@ const WorkersSection = ({
 
   return (
     <section
+      id="about"
       style={{
         padding: '0 1.5rem 6rem',
         maxWidth: '1100px',

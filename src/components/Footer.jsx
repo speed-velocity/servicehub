@@ -3,6 +3,7 @@ import React from 'react';
 const Footer = () => {
   return (
     <footer
+      id="contact"
       style={{
         borderTop: '1px solid rgba(255,255,255,0.06)',
         padding: '3rem 1.5rem',
