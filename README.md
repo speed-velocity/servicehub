@@ -18,7 +18,12 @@ ServiceHub is a React + Vite frontend with a Render-ready Node/Express backend f
 npm install
 ```
 
-2. Create `.env.local` from `.env.example`.
+2. Create `.env.local` from `.env.example` and add your Geoapify API key to:
+
+```bash
+GEOAPIFY_API_KEY=your_geoapify_api_key
+VITE_GEOAPIFY_API_KEY=your_geoapify_api_key
+```
 
 3. Start the backend:
 
@@ -40,3 +45,4 @@ This repo includes [render.yaml](/C:/Users/win11/.gemini/antigravity/scratch/ren
 - one Postgres database
 
 For production, Render should provide `DATABASE_URL` automatically from the linked Postgres instance.
+Add `GEOAPIFY_API_KEY` and `VITE_GEOAPIFY_API_KEY` in the service environment as well so Leaflet tiles and reverse geocoding use Geoapify.

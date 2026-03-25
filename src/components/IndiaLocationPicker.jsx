@@ -3,6 +3,13 @@ import { CircleMarker, MapContainer, TileLayer, useMap, useMapEvents } from 'rea
 import 'leaflet/dist/leaflet.css';
 
 const indiaCenter = [22.5937, 78.9629];
+const geoapifyApiKey = import.meta.env.VITE_GEOAPIFY_API_KEY || '';
+const tileUrl = geoapifyApiKey
+  ? `https://maps.geoapify.com/v1/tile/osm-carto/{z}/{x}/{y}.png?apiKey=${geoapifyApiKey}`
+  : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const tileAttribution = geoapifyApiKey
+  ? '&copy; <a href="https://www.geoapify.com/">Geoapify</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
 const MapResizeFix = ({ isVisible }) => {
   const map = useMap();
@@ -168,8 +175,8 @@ const IndiaLocationPicker = ({ isVisible, selectedLocation, onPick }) => {
           <MapViewportController selectedLocation={selectedLocation} />
           <MapClickHandler onPick={onPick} />
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution={tileAttribution}
+            url={tileUrl}
           />
           {selectedLocation ? (
             <CircleMarker
@@ -191,7 +198,9 @@ const IndiaLocationPicker = ({ isVisible, selectedLocation, onPick }) => {
           ? locationState.message
           : selectedLocation
             ? `Selected coordinates: ${selectedLocation.lat.toFixed(5)}, ${selectedLocation.lng.toFixed(5)}`
-            : locationState.message}
+            : geoapifyApiKey
+              ? locationState.message
+              : 'Geoapify tile key is missing, so the map is using the default OpenStreetMap tiles for now.'}
       </p>
     </div>
   );

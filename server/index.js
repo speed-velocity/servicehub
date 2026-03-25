@@ -22,6 +22,7 @@ import {
 const app = express();
 const port = Number(process.env.PORT || 10000);
 const clientOrigin = process.env.CLIENT_ORIGIN || true;
+const geoapifyApiKey = process.env.GEOAPIFY_API_KEY || '';
 const subscribers = new Set();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,8 +34,8 @@ const buildReadableAddress = (address, fallback) => {
   }
 
   const parts = [
-    address.road || address.pedestrian,
-    address.neighbourhood || address.suburb || address.hamlet || address.quarter,
+    address.address_line1 || address.street || address.road || address.pedestrian,
+    address.suburb || address.neighbourhood || address.hamlet || address.quarter,
     address.city || address.town || address.village || address.county || address.state_district,
     address.state,
     address.postcode,
@@ -47,32 +48,35 @@ const buildReadableAddress = (address, fallback) => {
 };
 
 const reverseGeocodeCoordinates = async (lat, lng) => {
+  if (!geoapifyApiKey) {
+    throw new Error('Geoapify reverse geocoding is not configured. Add GEOAPIFY_API_KEY to the server environment.');
+  }
+
   const searchParams = new URLSearchParams({
-    format: 'jsonv2',
+    format: 'json',
     lat: String(lat),
     lon: String(lng),
-    addressdetails: '1',
-    zoom: '18',
-    'accept-language': 'en',
+    lang: 'en',
+    apiKey: geoapifyApiKey,
   });
 
-  const nominatimResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?${searchParams.toString()}`, {
+  const geoapifyResponse = await fetch(`https://api.geoapify.com/v1/geocode/reverse?${searchParams.toString()}`, {
     headers: {
       Accept: 'application/json',
-      'User-Agent': 'ServiceHub/1.0 (support: servicehub render app)',
     },
   });
 
-  if (!nominatimResponse.ok) {
+  if (!geoapifyResponse.ok) {
     throw new Error('Unable to resolve location details right now.');
   }
 
-  const payload = await nominatimResponse.json();
-  const fallback = payload.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  const payload = await geoapifyResponse.json();
+  const firstResult = payload?.results?.[0] || null;
+  const fallback = firstResult?.formatted || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 
   return {
-    address: buildReadableAddress(payload.address, fallback),
-    displayName: payload.display_name || fallback,
+    address: buildReadableAddress(firstResult, fallback),
+    displayName: firstResult?.formatted || fallback,
   };
 };
 
