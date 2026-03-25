@@ -1,6 +1,7 @@
 import React from 'react';
+import ThemeToggle from './ThemeToggle';
 
-const PortalHeader = ({ activePath, showWorkerDashboard = false }) => {
+const PortalHeader = ({ activePath, showWorkerDashboard = false, theme = 'dark', onToggleTheme }) => {
   const normalizedPath = activePath === '/' ? '/' : activePath.replace(/\/$/, '');
   const portalLinks = [
     { href: '/', label: 'Home' },
@@ -16,7 +17,8 @@ const PortalHeader = ({ activePath, showWorkerDashboard = false }) => {
           <span>ServX</span>
         </a>
 
-        <nav className="portal-nav" aria-label="Portal navigation">
+        <div className="portal-header-actions">
+          <nav className="portal-nav" aria-label="Portal navigation">
           {portalLinks.map((link) => {
             const linkPath = link.href === '/' ? '/' : link.href.replace(/\/$/, '');
 
@@ -30,7 +32,9 @@ const PortalHeader = ({ activePath, showWorkerDashboard = false }) => {
               </a>
             );
           })}
-        </nav>
+          </nav>
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} compact />
+        </div>
       </div>
     </header>
   );

@@ -1,6 +1,8 @@
 import React from 'react';
 
-const Hero = ({ onBookNow, onExploreServices }) => {
+const Hero = ({ onBookNow, onExploreServices, theme = 'dark' }) => {
+  const isLight = theme === 'light';
+
   return (
     <section
       id="home"
@@ -16,17 +18,15 @@ const Hero = ({ onBookNow, onExploreServices }) => {
         overflow: 'hidden',
       }}
     >
-      {/* Background orb */}
       <div className="hero-orb" />
 
-      {/* Grid pattern overlay */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)
+            linear-gradient(${isLight ? 'rgba(15,23,42,0.04)' : 'rgba(255,255,255,0.02)'} 1px, transparent 1px),
+            linear-gradient(90deg, ${isLight ? 'rgba(15,23,42,0.04)' : 'rgba(255,255,255,0.02)'} 1px, transparent 1px)
           `,
           backgroundSize: '60px 60px',
           pointerEvents: 'none',
@@ -34,15 +34,12 @@ const Hero = ({ onBookNow, onExploreServices }) => {
         }}
       />
 
-      {/* Content */}
       <div style={{ position: 'relative', zIndex: 1, maxWidth: '780px' }}>
-        {/* Badge */}
         <div className="section-badge" style={{ marginBottom: '1.5rem' }}>
-          <span style={{ fontSize: '0.7rem' }}>⭐</span>
+          <span style={{ fontSize: '0.7rem' }}>*</span>
           Trusted by 10,000+ homeowners
         </div>
 
-        {/* Main heading */}
         <h1
           style={{
             fontSize: 'clamp(2.5rem, 6vw, 4rem)',
@@ -56,11 +53,10 @@ const Hero = ({ onBookNow, onExploreServices }) => {
           Book Trusted Home Services Instantly
         </h1>
 
-        {/* Subheading */}
         <p
           style={{
             fontSize: 'clamp(1rem, 2vw, 1.2rem)',
-            color: '#9ca3af',
+            color: isLight ? '#475569' : '#9ca3af',
             fontWeight: '400',
             maxWidth: '540px',
             margin: '0 auto 2.5rem',
@@ -70,7 +66,6 @@ const Hero = ({ onBookNow, onExploreServices }) => {
           Find verified electricians, plumbers, cleaners and more near you. Quality service at your doorstep.
         </p>
 
-        {/* CTAs */}
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
           <button
             className="btn-primary"
@@ -88,7 +83,6 @@ const Hero = ({ onBookNow, onExploreServices }) => {
           </button>
         </div>
 
-        {/* Stats row */}
         <div
           style={{
             display: 'flex',
@@ -100,7 +94,7 @@ const Hero = ({ onBookNow, onExploreServices }) => {
         >
           {[
             { value: '500+', label: 'Verified Pros' },
-            { value: '4.9★', label: 'Avg. Rating' },
+            { value: '4.9+', label: 'Avg. Rating' },
             { value: '10k+', label: 'Bookings Done' },
           ].map((stat) => (
             <div key={stat.label} style={{ textAlign: 'center' }}>
@@ -115,7 +109,7 @@ const Hero = ({ onBookNow, onExploreServices }) => {
               >
                 {stat.value}
               </div>
-              <div style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '500' }}>
+              <div style={{ fontSize: '0.85rem', color: isLight ? '#64748b' : '#6b7280', fontWeight: '500' }}>
                 {stat.label}
               </div>
             </div>
