@@ -1,7 +1,36 @@
 const apiBaseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 const geoapifyApiKey = import.meta.env.VITE_GEOAPIFY_API_KEY || '';
+const geocodeCache = new Map();
 
 const getApiUrl = (path) => `${apiBaseUrl}${path}`;
+const getCacheKey = (lat, lng) => `${Number(lat).toFixed(4)},${Number(lng).toFixed(4)}`;
+
+const fetchJsonWithTimeout = async (url, { timeoutMs = 3500, headers, signal } = {}) => {
+  const timeoutController = new AbortController();
+  const timeoutId = window.setTimeout(() => {
+    timeoutController.abort(new Error('Request timed out.'));
+  }, timeoutMs);
+
+  const combinedSignal = signal
+    ? AbortSignal.any([signal, timeoutController.signal])
+    : timeoutController.signal;
+
+  try {
+    const response = await fetch(url, {
+      headers,
+      signal: combinedSignal,
+    });
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(payload.error || 'Unable to fetch location details right now.');
+    }
+
+    return payload;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+};
 
 const buildReadableAddress = (address) => {
   if (!address) {
@@ -22,7 +51,7 @@ const buildReadableAddress = (address) => {
   return uniqueParts.join(', ');
 };
 
-const resolveFromGeoapify = async (lat, lng) => {
+const resolveFromGeoapify = async (lat, lng, signal) => {
   if (!geoapifyApiKey) {
     throw new Error('Geoapify is not configured on the frontend.');
   }
@@ -35,12 +64,10 @@ const resolveFromGeoapify = async (lat, lng) => {
     apiKey: geoapifyApiKey,
   });
 
-  const response = await fetch(`https://api.geoapify.com/v1/geocode/reverse?${searchParams.toString()}`);
-  const payload = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(payload.error || 'Unable to fetch location details right now.');
-  }
+  const payload = await fetchJsonWithTimeout(`https://api.geoapify.com/v1/geocode/reverse?${searchParams.toString()}`, {
+    signal,
+    timeoutMs: 2600,
+  });
 
   const firstResult = payload?.results?.[0] || null;
   const resolvedAddress = buildReadableAddress(firstResult) || firstResult?.formatted || '';
@@ -52,18 +79,16 @@ const resolveFromGeoapify = async (lat, lng) => {
   return resolvedAddress;
 };
 
-const resolveFromBackend = async (lat, lng) => {
+const resolveFromBackend = async (lat, lng, signal) => {
   const searchParams = new URLSearchParams({
     lat: String(lat),
     lng: String(lng),
   });
 
-  const response = await fetch(getApiUrl(`/api/geocode/reverse?${searchParams.toString()}`));
-  const payload = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(payload.error || 'Unable to fetch location details right now.');
-  }
+  const payload = await fetchJsonWithTimeout(getApiUrl(`/api/geocode/reverse?${searchParams.toString()}`), {
+    signal,
+    timeoutMs: 3200,
+  });
 
   const resolvedAddress = payload.address || payload.displayName || '';
 
@@ -74,7 +99,7 @@ const resolveFromBackend = async (lat, lng) => {
   return resolvedAddress;
 };
 
-const resolveFromNominatim = async (lat, lng) => {
+const resolveFromNominatim = async (lat, lng, signal) => {
   const searchParams = new URLSearchParams({
     format: 'jsonv2',
     lat: String(lat),
@@ -84,16 +109,13 @@ const resolveFromNominatim = async (lat, lng) => {
     'accept-language': 'en',
   });
 
-  const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${searchParams.toString()}`, {
+  const payload = await fetchJsonWithTimeout(`https://nominatim.openstreetmap.org/reverse?${searchParams.toString()}`, {
     headers: {
       Accept: 'application/json',
     },
+    signal,
+    timeoutMs: 3600,
   });
-  const payload = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(payload.error || 'Unable to fetch location details right now.');
-  }
 
   const resolvedAddress = buildReadableAddress(payload.address) || payload.display_name || '';
 
@@ -104,18 +126,29 @@ const resolveFromNominatim = async (lat, lng) => {
   return resolvedAddress;
 };
 
-export const reverseGeocodeLocation = async (lat, lng) => {
+export const reverseGeocodeLocation = async (lat, lng, options = {}) => {
+  const cacheKey = getCacheKey(lat, lng);
+  const cachedAddress = geocodeCache.get(cacheKey);
+
+  if (cachedAddress) {
+    return cachedAddress;
+  }
+
   try {
-    return await resolveFromGeoapify(lat, lng);
-  } catch (frontendError) {
+    const resolvedAddress = await Promise.any([
+      resolveFromGeoapify(lat, lng, options.signal),
+      resolveFromBackend(lat, lng, options.signal),
+    ]);
+
+    geocodeCache.set(cacheKey, resolvedAddress);
+    return resolvedAddress;
+  } catch {
     try {
-      return await resolveFromBackend(lat, lng);
-    } catch (backendError) {
-      try {
-        return await resolveFromNominatim(lat, lng);
-      } catch {
-        throw backendError instanceof Error ? backendError : frontendError;
-      }
+      const resolvedAddress = await resolveFromNominatim(lat, lng, options.signal);
+      geocodeCache.set(cacheKey, resolvedAddress);
+      return resolvedAddress;
+    } catch (error) {
+      throw error instanceof Error ? error : new Error('Unable to fetch location details right now.');
     }
   }
 };

@@ -203,6 +203,8 @@ function App() {
   });
   const watchIdRef = useRef(null);
   const lastSentLocationRef = useRef(null);
+  const geocodeAbortControllerRef = useRef(null);
+  const geocodeRequestIdRef = useRef(0);
   const hasActiveSession = Boolean(userSession || workerSession);
   const hasUserSession = Boolean(userSession);
   const authIntent =
@@ -408,6 +410,8 @@ function App() {
   };
 
   const closeBooking = () => {
+    geocodeAbortControllerRef.current?.abort();
+    geocodeAbortControllerRef.current = null;
     setIsBookingOpen(false);
     setFormErrors({});
     setBookingService('');
@@ -535,6 +539,12 @@ function App() {
   };
 
   const handleMapLocationSelect = async ({ lat, lng, source = 'map' }) => {
+    geocodeAbortControllerRef.current?.abort();
+    const nextController = new AbortController();
+    geocodeAbortControllerRef.current = nextController;
+    const requestId = geocodeRequestIdRef.current + 1;
+    geocodeRequestIdRef.current = requestId;
+
     setBookingLocation({ lat, lng, source });
     setBookingForm((currentForm) => ({
       ...currentForm,
@@ -551,13 +561,23 @@ function App() {
     setIsResolvingBookingAddress(true);
 
     try {
-      const resolvedAddress = await reverseGeocodeLocation(lat, lng);
+      const resolvedAddress = await reverseGeocodeLocation(lat, lng, {
+        signal: nextController.signal,
+      });
+
+      if (geocodeRequestIdRef.current !== requestId) {
+        return;
+      }
 
       setBookingForm((currentForm) => ({
         ...currentForm,
         address: resolvedAddress,
       }));
-    } catch {
+    } catch (error) {
+      if (error.name === 'AbortError' || geocodeRequestIdRef.current !== requestId) {
+        return;
+      }
+
       setBookingForm((currentForm) => ({
         ...currentForm,
         address: '',
@@ -567,7 +587,9 @@ function App() {
         address: 'Address could not be fetched automatically. Please type your full address manually.',
       }));
     } finally {
-      setIsResolvingBookingAddress(false);
+      if (geocodeRequestIdRef.current === requestId) {
+        setIsResolvingBookingAddress(false);
+      }
     }
   };
 
