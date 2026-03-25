@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import ThemeToggle from './ThemeToggle';
-
 const navLinks = [
   { id: 'home', label: 'Home' },
   { id: 'services', label: 'Services' },
@@ -8,7 +6,7 @@ const navLinks = [
   { id: 'contact', label: 'Contact' },
 ];
 
-const Header = ({ onAuthAction, authActionLabel = 'Sign Up / Login', onBookNow, theme = 'dark', onToggleTheme }) => {
+const Header = ({ onAuthAction, authActionLabel = 'Sign Up / Login', onBookNow }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeLink, setActiveLink] = useState('home');
@@ -151,7 +149,6 @@ const Header = ({ onAuthAction, authActionLabel = 'Sign Up / Login', onBookNow, 
               {link.label}
             </a>
           ))}
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
           <button
             type="button"
             className="btn-outline desktop-auth-btn"
@@ -224,7 +221,6 @@ const Header = ({ onAuthAction, authActionLabel = 'Sign Up / Login', onBookNow, 
               {link.label}
             </a>
           ))}
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
           <button
             type="button"
             className="btn-outline mobile-auth-btn"

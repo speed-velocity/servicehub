@@ -1,13 +1,11 @@
 import React from 'react';
 
-const Footer = ({ theme = 'dark' }) => {
-  const isLight = theme === 'light';
-
+const Footer = () => {
   return (
     <footer
       id="contact"
       style={{
-        borderTop: isLight ? '1px solid rgba(15,23,42,0.08)' : '1px solid rgba(255,255,255,0.06)',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
         padding: '3rem 1.5rem',
         textAlign: 'center',
       }}
@@ -65,16 +63,16 @@ const Footer = ({ theme = 'dark' }) => {
                 key={link.label}
                 href={link.href}
                 style={{
-                  color: isLight ? '#64748b' : '#6b7280',
+                  color: '#6b7280',
                   textDecoration: 'none',
                   fontSize: '0.85rem',
                   transition: 'color 200ms ease',
                 }}
                 onMouseEnter={(event) => {
-                  event.target.style.color = isLight ? '#0f172a' : '#9ca3af';
+                  event.target.style.color = '#9ca3af';
                 }}
                 onMouseLeave={(event) => {
-                  event.target.style.color = isLight ? '#64748b' : '#6b7280';
+                  event.target.style.color = '#6b7280';
                 }}
               >
                 {link.label}
@@ -88,13 +86,13 @@ const Footer = ({ theme = 'dark' }) => {
             marginBottom: '1.5rem',
             padding: '1rem 1.25rem',
             borderRadius: '18px',
-            border: isLight ? '1px solid rgba(15,23,42,0.08)' : '1px solid rgba(255,255,255,0.08)',
-            background: isLight ? 'rgba(255,255,255,0.74)' : 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'rgba(255,255,255,0.04)',
             backdropFilter: 'blur(14px)',
             WebkitBackdropFilter: 'blur(14px)',
           }}
         >
-          <p style={{ color: isLight ? '#64748b' : '#9ca3af', fontSize: '0.85rem', marginBottom: '0.35rem', letterSpacing: '0.02em' }}>
+          <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.35rem', letterSpacing: '0.02em' }}>
             Contact
           </p>
           <div style={{ display: 'grid', gap: '0.35rem' }}>
@@ -123,7 +121,7 @@ const Footer = ({ theme = 'dark' }) => {
           </div>
         </div>
 
-        <p style={{ color: isLight ? '#64748b' : '#4b5563', fontSize: '0.82rem' }}>
+        <p style={{ color: '#4b5563', fontSize: '0.82rem' }}>
           &copy; {new Date().getFullYear()} ServX. All rights reserved. Built with care for your home.
         </p>
       </div>

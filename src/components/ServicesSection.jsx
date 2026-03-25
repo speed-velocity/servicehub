@@ -61,10 +61,9 @@ const hiddenServices = [
   { id: 'technician', title: 'Technician', iconKey: 'technician' },
 ];
 
-const ServicesSection = ({ isLocked = false, onServiceSelect, theme = 'dark' }) => {
+const ServicesSection = ({ isLocked = false, onServiceSelect }) => {
   const [expanded, setExpanded] = useState(false);
   const hiddenRef = useRef(null);
-  const isLight = theme === 'light';
 
   const toggleExpanded = () => {
     setExpanded((prev) => !prev);
@@ -96,7 +95,7 @@ const ServicesSection = ({ isLocked = false, onServiceSelect, theme = 'dark' }) 
         >
           What We Offer
         </h2>
-        <p style={{ color: isLight ? '#475569' : '#9ca3af', fontSize: '1rem', maxWidth: '440px', margin: '0 auto' }}>
+        <p style={{ color: '#9ca3af', fontSize: '1rem', maxWidth: '440px', margin: '0 auto' }}>
           Professional services at your fingertips, ready to book in seconds.
         </p>
       </div>
@@ -115,7 +114,6 @@ const ServicesSection = ({ isLocked = false, onServiceSelect, theme = 'dark' }) 
             key={service.id}
             title={service.title}
             icon={icons[service.iconKey]}
-            theme={theme}
             isLocked={isLocked}
             onClick={() => onServiceSelect?.(service.title)}
           />
@@ -124,7 +122,6 @@ const ServicesSection = ({ isLocked = false, onServiceSelect, theme = 'dark' }) 
         <ServiceCard
           title="More"
           isMore={true}
-          theme={theme}
           isExpanded={expanded}
           onClick={toggleExpanded}
         />
@@ -140,15 +137,15 @@ const ServicesSection = ({ isLocked = false, onServiceSelect, theme = 'dark' }) 
           style={{
             marginTop: '1.5rem',
             padding: '1.5rem',
-            background: isLight ? 'rgba(255,255,255,0.75)' : 'rgba(59, 130, 246, 0.04)',
-            border: isLight ? '1px solid rgba(15,23,42,0.08)' : '1px solid rgba(59, 130, 246, 0.12)',
+            background: 'rgba(59, 130, 246, 0.04)',
+            border: '1px solid rgba(59, 130, 246, 0.12)',
             borderRadius: '16px',
           }}
         >
           <p
             style={{
               fontSize: '0.8rem',
-              color: isLight ? '#64748b' : '#6b7280',
+              color: '#6b7280',
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
               fontWeight: '600',
@@ -170,7 +167,6 @@ const ServicesSection = ({ isLocked = false, onServiceSelect, theme = 'dark' }) 
                 key={service.id}
                 title={service.title}
                 icon={icons[service.iconKey]}
-                theme={theme}
                 isLocked={isLocked}
                 onClick={() => onServiceSelect?.(service.title)}
               />

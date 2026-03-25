@@ -15,9 +15,7 @@ const aboutHighlights = [
   },
 ];
 
-const AboutSection = ({ theme = 'dark' }) => {
-  const isLight = theme === 'light';
-
+const AboutSection = () => {
   return (
     <section
       id="about"
@@ -45,7 +43,7 @@ const AboutSection = ({ theme = 'dark' }) => {
           </h2>
           <p
             style={{
-              color: isLight ? '#475569' : '#9ca3af',
+              color: '#9ca3af',
               fontSize: '1rem',
               lineHeight: '1.8',
               maxWidth: '600px',
@@ -58,7 +56,7 @@ const AboutSection = ({ theme = 'dark' }) => {
           </p>
           <p
             style={{
-              color: isLight ? '#475569' : '#9ca3af',
+              color: '#9ca3af',
               fontSize: '0.98rem',
               lineHeight: '1.8',
               maxWidth: '600px',
@@ -78,14 +76,14 @@ const AboutSection = ({ theme = 'dark' }) => {
                   fontSize: '1.05rem',
                   fontWeight: '700',
                   marginBottom: '0.65rem',
-                  color: isLight ? '#0f172a' : '#ffffff',
+                  color: '#ffffff',
                 }}
               >
                 {item.title}
               </h3>
               <p
                 style={{
-                  color: isLight ? '#475569' : '#9ca3af',
+                  color: '#9ca3af',
                   lineHeight: '1.7',
                   fontSize: '0.95rem',
                 }}

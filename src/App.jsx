@@ -24,18 +24,6 @@ const emptyForm = {
 const workerSessionStorageKey = 'servicehub_worker_session';
 const userSessionStorageKey = 'servicehub_user_session';
 const authIntentStorageKey = 'servicehub_auth_intent';
-const themeStorageKey = 'servx_theme';
-
-const getInitialTheme = () => {
-  const savedTheme = window.localStorage.getItem(themeStorageKey);
-
-  if (savedTheme === 'light' || savedTheme === 'dark') {
-    return savedTheme;
-  }
-
-  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-};
-
 const normalizeText = (value) =>
   value
     .toLowerCase()
@@ -157,7 +145,6 @@ const getInitialRoute = () => {
 
 function App() {
   const route = getInitialRoute();
-  const [theme, setTheme] = useState(getInitialTheme);
   const [bookingService, setBookingService] = useState('');
   const [bookingLocation, setBookingLocation] = useState(null);
   const [showBookingServiceSelect, setShowBookingServiceSelect] = useState(false);
@@ -223,11 +210,6 @@ function App() {
     route === '/signup' || route === '/account' || route === '/worker'
       ? window.sessionStorage.getItem(authIntentStorageKey) || ''
       : '';
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem(themeStorageKey, theme);
-  }, [theme]);
 
   useEffect(() => {
     setWorkersLoading(true);
@@ -776,19 +758,10 @@ function App() {
     navigateToSignup();
   };
 
-  const handleToggleTheme = () => {
-    setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'));
-  };
-
   if (route === '/worker/dashboard' && workerSession) {
     return (
-      <div style={{ backgroundColor: 'var(--app-surface)', minHeight: '100vh', color: 'var(--app-text)' }}>
-        <PortalHeader
-          activePath="/worker/dashboard"
-          showWorkerDashboard
-          theme={theme}
-          onToggleTheme={handleToggleTheme}
-        />
+      <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
+        <PortalHeader activePath="/worker/dashboard" showWorkerDashboard />
         <WorkerDashboardPage
           workerSession={workerSession}
           sessionWorker={sessionWorker}
@@ -817,12 +790,10 @@ function App() {
           : 'user-register';
 
     return (
-      <div style={{ backgroundColor: 'var(--app-surface)', minHeight: '100vh', color: 'var(--app-text)' }}>
+      <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
         <PortalHeader
           activePath={route === '/worker/dashboard' ? '/worker/dashboard' : '/signup'}
           showWorkerDashboard={Boolean(workerSession)}
-          theme={theme}
-          onToggleTheme={handleToggleTheme}
         />
         <AuthHubPage
           authPrompt={
@@ -857,12 +828,10 @@ function App() {
   }
 
   return (
-    <div style={{ backgroundColor: 'var(--app-surface)', minHeight: '100vh', color: 'var(--app-text)' }}>
+    <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
       <Header
         authActionLabel={hasActiveSession ? 'Logout' : 'Sign Up / Login'}
         onAuthAction={handleHeaderAuthAction}
-        theme={theme}
-        onToggleTheme={handleToggleTheme}
         onBookNow={() => {
           if (!hasUserSession) {
             redirectToBookingAuth();
@@ -874,7 +843,6 @@ function App() {
       />
       <main>
         <Hero
-          theme={theme}
           onBookNow={() => {
             if (!hasUserSession) {
               redirectToBookingAuth();
@@ -885,10 +853,10 @@ function App() {
           }}
           onExploreServices={handleExploreServices}
         />
-        <ServicesSection theme={theme} isLocked={!hasUserSession} onServiceSelect={handleServiceSelect} />
-        <AboutSection theme={theme} />
+        <ServicesSection isLocked={!hasUserSession} onServiceSelect={handleServiceSelect} />
+        <AboutSection />
       </main>
-      <Footer theme={theme} />
+      <Footer />
       <BookingModal
         isOpen={isBookingOpen}
         selectedService={bookingService}

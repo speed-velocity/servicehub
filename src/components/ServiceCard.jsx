@@ -1,8 +1,7 @@
 import React from 'react';
 
-const ServiceCard = ({ icon, title, isMore = false, isLocked = false, onClick, isExpanded = false, theme = 'dark' }) => {
+const ServiceCard = ({ icon, title, isMore = false, isLocked = false, onClick, isExpanded = false }) => {
   const isInteractive = Boolean(onClick);
-  const isLight = theme === 'light';
 
   return (
     <div
@@ -48,19 +47,19 @@ const ServiceCard = ({ icon, title, isMore = false, isLocked = false, onClick, i
           style={{
             fontSize: '0.95rem',
             fontWeight: '600',
-            color: isMore ? '#93c5fd' : isLight ? '#0f172a' : '#ffffff',
+            color: isMore ? '#93c5fd' : '#ffffff',
             letterSpacing: '0.01em',
           }}
         >
           {title}
         </span>
         {isLocked && !isMore ? (
-          <p style={{ fontSize: '0.75rem', color: isLight ? '#2563eb' : '#93c5fd', marginTop: '0.25rem', fontWeight: '500' }}>
+          <p style={{ fontSize: '0.75rem', color: '#93c5fd', marginTop: '0.25rem', fontWeight: '500' }}>
             Login required
           </p>
         ) : null}
         {isMore && (
-          <p style={{ fontSize: '0.75rem', color: isLight ? '#64748b' : '#6b7280', marginTop: '0.25rem', fontWeight: '400' }}>
+          <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem', fontWeight: '400' }}>
             {isExpanded ? 'Show less' : 'View all'}
           </p>
         )}
