@@ -191,15 +191,6 @@ const AuthHubPage = ({
   const activeType = currentMode.type;
   const activeAction = currentMode.id.includes('login') ? 'login' : 'register';
   const content = modeContent[activeType][activeAction];
-  const showcaseCards = useMemo(
-    () =>
-      content.showcasePoints.map((point, index) => ({
-        id: `${activeType}-${activeAction}-${index}`,
-        label: index === 0 ? 'Flash' : index === 1 ? 'Guard' : 'Flow',
-        title: point,
-      })),
-    [activeAction, activeType, content.showcasePoints]
-  );
   const workspaceHighlights = useMemo(
     () =>
       activeType === 'user'
@@ -843,68 +834,11 @@ const AuthHubPage = ({
         </section>
       ) : null}
 
-      <section className="auth-experience-shell">
-        <aside className="auth-showcase-panel">
-          <div className="auth-showcase-sheen" />
-          <div className="auth-showcase-content">
-            <div className="auth-showcase-header">
-              <div className="section-badge">{content.showcaseBadge}</div>
-            </div>
-
-            <div className="auth-showcase-copyblock">
-              <p className="auth-showcase-kicker">ServX</p>
-              <h1 className="auth-showcase-title">{content.showcaseTitle}</h1>
-              <p className="auth-showcase-copy">{content.showcaseCopy}</p>
-            </div>
-
-            <div className="auth-showcase-card-grid">
-              <div className="auth-showcase-glasscard auth-showcase-glasscard-primary">
-                <p className="auth-showcase-glasslabel">
-                  {activeType === 'user' ? 'Customer Workspace' : 'Worker Workspace'}
-                </p>
-                <h3 className="auth-showcase-glassheading">
-                  {activeType === 'user'
-                    ? activeAction === 'register'
-                      ? 'Create once. Book quicker.'
-                      : 'Sign in and move straight to services.'
-                    : activeAction === 'register'
-                      ? 'Set up once. Go live cleanly.'
-                      : 'Sign in and control your status instantly.'}
-                </h3>
-              </div>
-
-              <div className="auth-showcase-microgrid">
-                {showcaseCards.map((card) => (
-                  <article key={card.id} className="auth-showcase-mini-card">
-                    <p className="auth-showcase-mini-label">{card.label}</p>
-                    <h3 className="auth-showcase-mini-title">{card.title}</h3>
-                  </article>
-                ))}
-              </div>
-            </div>
-
-            <div className="auth-showcase-actions">
-              <a href="/" className="btn-outline auth-showcase-link">
-                Explore Home
-              </a>
-              <button type="button" className="btn-primary" onClick={switchAlternateMode}>
-                {content.switchLabel}
-              </button>
-            </div>
-          </div>
-        </aside>
-
-        <section className="auth-workspace">
+      <section className="auth-experience-shell auth-experience-shell-compact">
+        <section className="auth-workspace auth-workspace-full">
           <div className="auth-workspace-ambient" />
           <div className="auth-workspace-inner">
-            <div className="auth-switchboard">
-              <div className="auth-switchboard-copy">
-                <div className="section-badge">Secure Access</div>
-                <h2 className="auth-switchboard-title">
-                  {activeType === 'user' ? 'User Access' : 'Worker Access'}
-                </h2>
-              </div>
-
+            <div className="auth-switchboard auth-switchboard-compact">
               <div className="auth-switchboard-highlights">
                 {workspaceHighlights.map((item) => (
                   <article key={item.label} className="auth-switchboard-card">
