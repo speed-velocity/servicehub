@@ -47,11 +47,7 @@ const buildReadableAddress = (address, fallback) => {
   return uniqueParts.length > 0 ? uniqueParts.join(', ') : fallback;
 };
 
-const reverseGeocodeCoordinates = async (lat, lng) => {
-  if (!geoapifyApiKey) {
-    throw new Error('Geoapify reverse geocoding is not configured. Add GEOAPIFY_API_KEY to the server environment.');
-  }
-
+const reverseGeocodeWithGeoapify = async (lat, lng) => {
   const searchParams = new URLSearchParams({
     format: 'json',
     lat: String(lat),
@@ -78,6 +74,48 @@ const reverseGeocodeCoordinates = async (lat, lng) => {
     address: buildReadableAddress(firstResult, fallback),
     displayName: firstResult?.formatted || fallback,
   };
+};
+
+const reverseGeocodeWithNominatim = async (lat, lng) => {
+  const searchParams = new URLSearchParams({
+    format: 'jsonv2',
+    lat: String(lat),
+    lon: String(lng),
+    addressdetails: '1',
+    zoom: '18',
+    'accept-language': 'en',
+  });
+
+  const nominatimResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?${searchParams.toString()}`, {
+    headers: {
+      Accept: 'application/json',
+      'User-Agent': 'ServiceHub/1.0 (support: servicehub render app)',
+    },
+  });
+
+  if (!nominatimResponse.ok) {
+    throw new Error('Unable to resolve location details right now.');
+  }
+
+  const payload = await nominatimResponse.json();
+  const fallback = payload.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+  return {
+    address: buildReadableAddress(payload.address, fallback),
+    displayName: payload.display_name || fallback,
+  };
+};
+
+const reverseGeocodeCoordinates = async (lat, lng) => {
+  if (geoapifyApiKey) {
+    try {
+      return await reverseGeocodeWithGeoapify(lat, lng);
+    } catch {
+      return reverseGeocodeWithNominatim(lat, lng);
+    }
+  }
+
+  return reverseGeocodeWithNominatim(lat, lng);
 };
 
 const sendWorkers = async (response) => {

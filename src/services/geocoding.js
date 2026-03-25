@@ -80,8 +80,8 @@ export const reverseGeocodeLocation = async (lat, lng) => {
   } catch (frontendError) {
     try {
       return await resolveFromBackend(lat, lng);
-    } catch {
-      throw frontendError;
+    } catch (backendError) {
+      throw backendError instanceof Error ? backendError : frontendError;
     }
   }
 };
