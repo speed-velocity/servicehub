@@ -538,7 +538,7 @@ function App() {
     setBookingLocation({ lat, lng, source });
     setBookingForm((currentForm) => ({
       ...currentForm,
-      address: '',
+      address: 'Fetching your address...',
     }));
 
     setFormErrors((currentErrors) => {
