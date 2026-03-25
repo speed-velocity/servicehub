@@ -32,7 +32,7 @@ const Hero = ({ onBookNow, onExploreServices }) => {
         }}
       />
 
-      <div style={{ position: 'relative', zIndex: 1, maxWidth: '780px' }}>
+      <div className="hero-content-shell" style={{ position: 'relative', zIndex: 1, maxWidth: '780px' }}>
         <div className="section-badge" style={{ marginBottom: '1.5rem' }}>
           <span style={{ fontSize: '0.7rem' }}>⭐</span>
           Trusted by 10,000+ homeowners
@@ -64,7 +64,7 @@ const Hero = ({ onBookNow, onExploreServices }) => {
           Find verified electricians, plumbers, cleaners and more near you. Quality service at your doorstep.
         </p>
 
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div className="hero-actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
           <button
             className="btn-primary"
             style={{ fontSize: '1.05rem', padding: '0.9rem 2.5rem' }}
