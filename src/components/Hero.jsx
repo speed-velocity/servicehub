@@ -97,7 +97,6 @@ const Hero = ({ onBookNow, onExploreServices }) => {
             <span className={`hero-typeword ${isDeletingWord ? 'is-deleting' : ''}`}>
               {typedWord || '\u00A0'}
             </span>
-            <span className="hero-type-caret" aria-hidden="true" />
           </span>
           <span className="hero-render-line">near you.</span>
         </div>
