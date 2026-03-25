@@ -27,7 +27,7 @@ const ServiceCard = ({ icon, title, isMore = false, isLocked = false, onClick, i
           <span
             style={{
               fontSize: '1.75rem',
-              color: '#3b82f6',
+              color: '#22c55e',
               fontWeight: '300',
               lineHeight: '1',
               transition: 'transform 300ms ease-in-out',
@@ -47,14 +47,14 @@ const ServiceCard = ({ icon, title, isMore = false, isLocked = false, onClick, i
           style={{
             fontSize: '0.95rem',
             fontWeight: '600',
-            color: isMore ? '#93c5fd' : '#ffffff',
+            color: isMore ? '#bbf7d0' : '#ffffff',
             letterSpacing: '0.01em',
           }}
         >
           {title}
         </span>
         {isLocked && !isMore ? (
-          <p style={{ fontSize: '0.75rem', color: '#93c5fd', marginTop: '0.25rem', fontWeight: '500' }}>
+          <p style={{ fontSize: '0.75rem', color: '#bbf7d0', marginTop: '0.25rem', fontWeight: '500' }}>
             Login required
           </p>
         ) : null}

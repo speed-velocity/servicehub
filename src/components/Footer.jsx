@@ -26,7 +26,7 @@ const Footer = () => {
               style={{
                 width: '28px',
                 height: '28px',
-                background: 'linear-gradient(135deg, #2563eb, #60a5fa)',
+                background: 'linear-gradient(135deg, #16a34a, #22c55e)',
                 borderRadius: '7px',
                 display: 'flex',
                 alignItems: 'center',
@@ -42,7 +42,7 @@ const Footer = () => {
               style={{
                 fontWeight: '700',
                 fontSize: '1.1rem',
-                background: 'linear-gradient(135deg, #fff, #93c5fd)',
+                background: 'linear-gradient(135deg, #fff, #bbf7d0)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',

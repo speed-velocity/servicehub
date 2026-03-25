@@ -100,7 +100,7 @@ const Hero = ({ onBookNow, onExploreServices }) => {
                 style={{
                   fontSize: '1.8rem',
                   fontWeight: '800',
-                  color: '#3b82f6',
+                  color: '#22c55e',
                   lineHeight: '1',
                   marginBottom: '0.3rem',
                 }}

@@ -100,7 +100,7 @@ const Header = ({ onAuthAction, authActionLabel = 'Sign Up / Login', onBookNow }
             style={{
               width: '32px',
               height: '32px',
-              background: 'linear-gradient(135deg, #2563eb, #60a5fa)',
+              background: 'linear-gradient(135deg, #16a34a, #22c55e)',
               borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
@@ -116,7 +116,7 @@ const Header = ({ onAuthAction, authActionLabel = 'Sign Up / Login', onBookNow }
             style={{
               fontSize: '1.35rem',
               fontWeight: '800',
-              background: 'linear-gradient(135deg, #fff, #93c5fd)',
+              background: 'linear-gradient(135deg, #fff, #bbf7d0)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
