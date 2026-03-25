@@ -831,7 +831,6 @@ const AuthHubPage = ({
           <div className="auth-showcase-content">
             <div className="auth-showcase-header">
               <div className="section-badge">{content.showcaseBadge}</div>
-              <div className="auth-showcase-mini-pill">Liquid Access</div>
             </div>
 
             <div className="auth-showcase-copyblock">
