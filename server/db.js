@@ -131,6 +131,7 @@ const memoryWorkers = defaultWorkers.map((worker) => ({
 }));
 const memoryWorkerAccounts = [];
 const memoryUserAccounts = [];
+const memoryBookings = [];
 
 const sortWorkers = (workers) =>
   [...workers].sort((leftWorker, rightWorker) => {
@@ -160,6 +161,21 @@ const normalizeRow = (row) => ({
   currentLocation: row.current_location || row.currentLocation || '',
   lastSeenAt: row.last_seen_at ? new Date(row.last_seen_at).getTime() : row.lastSeenAt || 0,
   available: Boolean(row.available),
+  createdAt: row.created_at ? new Date(row.created_at).getTime() : row.createdAt || 0,
+  updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : row.updatedAt || 0,
+});
+
+const normalizeBookingRow = (row) => ({
+  id: row.id,
+  workerId: row.worker_id || row.workerId || null,
+  userId: row.user_id || row.userId || null,
+  customerName: row.customer_name || row.customerName || '',
+  customerPhone: row.customer_phone || row.customerPhone || '',
+  customerAddress: row.customer_address || row.customerAddress || '',
+  service: row.service,
+  status: row.status || 'assigned',
+  latitude: row.latitude == null ? null : Number(row.latitude),
+  longitude: row.longitude == null ? null : Number(row.longitude),
   createdAt: row.created_at ? new Date(row.created_at).getTime() : row.createdAt || 0,
   updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : row.updatedAt || 0,
 });
@@ -231,6 +247,23 @@ export const ensureDatabaseReady = async () => {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS bookings (
+      id TEXT PRIMARY KEY,
+      worker_id TEXT REFERENCES workers(id) ON DELETE SET NULL,
+      user_id TEXT,
+      customer_name TEXT NOT NULL,
+      customer_phone TEXT NOT NULL,
+      customer_address TEXT NOT NULL,
+      service TEXT NOT NULL,
+      latitude DOUBLE PRECISION,
+      longitude DOUBLE PRECISION,
+      status TEXT NOT NULL DEFAULT 'assigned',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
     CREATE INDEX IF NOT EXISTS workers_service_idx
     ON workers(service);
   `);
@@ -243,6 +276,11 @@ export const ensureDatabaseReady = async () => {
   await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS user_accounts_email_idx
     ON user_accounts(LOWER(email));
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS bookings_worker_id_idx
+    ON bookings(worker_id, created_at DESC);
   `);
 
   const countResult = await pool.query(`SELECT COUNT(*)::INTEGER AS count FROM workers;`);
@@ -435,6 +473,137 @@ export const updateWorkerLocation = async (workerId, locationUpdate) => {
 };
 
 export const hasDatabaseConnection = shouldUseDatabase;
+
+export const createBooking = async ({
+  assignedWorkerId,
+  userId,
+  customerName,
+  customerPhone,
+  customerAddress,
+  service,
+  locationCoordinates,
+}) => {
+  const nextBooking = {
+    id: crypto.randomUUID(),
+    workerId: assignedWorkerId || null,
+    userId: userId || null,
+    customerName: customerName.trim(),
+    customerPhone: normalizePhone(customerPhone),
+    customerAddress: customerAddress.trim(),
+    service: service.trim(),
+    status: assignedWorkerId ? 'assigned' : 'pending',
+    latitude:
+      locationCoordinates?.lat == null || !Number.isFinite(Number(locationCoordinates.lat))
+        ? null
+        : Number(locationCoordinates.lat),
+    longitude:
+      locationCoordinates?.lng == null || !Number.isFinite(Number(locationCoordinates.lng))
+        ? null
+        : Number(locationCoordinates.lng),
+  };
+
+  if (!pool) {
+    if (nextBooking.workerId) {
+      const assignedWorker = memoryWorkers.find((worker) => worker.id === nextBooking.workerId);
+
+      if (!assignedWorker) {
+        throw new Error('Worker not found.');
+      }
+    }
+
+    const timestamp = Date.now();
+    const memoryBooking = {
+      ...nextBooking,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+
+    memoryBookings.unshift(memoryBooking);
+
+    return memoryBooking;
+  }
+
+  if (nextBooking.workerId) {
+    const workerResult = await pool.query(
+      `
+        SELECT id
+        FROM workers
+        WHERE id = $1
+        LIMIT 1;
+      `,
+      [nextBooking.workerId]
+    );
+
+    if (workerResult.rowCount === 0) {
+      throw new Error('Worker not found.');
+    }
+  }
+
+  const result = await pool.query(
+    `
+      INSERT INTO bookings (
+        id,
+        worker_id,
+        user_id,
+        customer_name,
+        customer_phone,
+        customer_address,
+        service,
+        latitude,
+        longitude,
+        status
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING id, worker_id, user_id, customer_name, customer_phone, customer_address, service, status, latitude, longitude, created_at, updated_at;
+    `,
+    [
+      nextBooking.id,
+      nextBooking.workerId,
+      nextBooking.userId,
+      nextBooking.customerName,
+      nextBooking.customerPhone,
+      nextBooking.customerAddress,
+      nextBooking.service,
+      nextBooking.latitude,
+      nextBooking.longitude,
+      nextBooking.status,
+    ]
+  );
+
+  return normalizeBookingRow(result.rows[0]);
+};
+
+export const listBookingsForWorker = async (workerId) => {
+  if (!pool) {
+    return memoryBookings
+      .filter((booking) => booking.workerId === workerId)
+      .sort((leftBooking, rightBooking) => rightBooking.createdAt - leftBooking.createdAt);
+  }
+
+  const result = await pool.query(
+    `
+      SELECT
+        id,
+        worker_id,
+        user_id,
+        customer_name,
+        customer_phone,
+        customer_address,
+        service,
+        status,
+        latitude,
+        longitude,
+        created_at,
+        updated_at
+      FROM bookings
+      WHERE worker_id = $1
+      ORDER BY created_at DESC;
+    `,
+    [workerId]
+  );
+
+  return result.rows.map(normalizeBookingRow);
+};
 
 export const createWorkerAccount = async ({ email, password, workerProfile }) => {
   const normalizedEmail = email.trim().toLowerCase();

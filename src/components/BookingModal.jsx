@@ -10,6 +10,8 @@ const BookingModal = ({
   formErrors,
   confirmedBooking,
   matchedWorkers,
+  submissionError,
+  isSubmitting,
   isResolvingAddress,
   selectedLocation,
   onClose,
@@ -92,13 +94,18 @@ const BookingModal = ({
               Booking confirmed for {confirmedBooking.service}
             </h3>
             <p style={{ color: '#9ca3af', marginBottom: '1.5rem' }}>
-              We have saved your details for this frontend demo flow.
+              {confirmedBooking.assignedWorkerName
+                ? `${confirmedBooking.assignedWorkerName} has been assigned to this booking.`
+                : 'Your booking is saved. We will assign a worker as soon as one is available.'}
             </p>
 
             <div className="booking-summary">
               <p><span>Name:</span> {confirmedBooking.name}</p>
               <p><span>Phone:</span> {confirmedBooking.phone}</p>
               <p><span>Address:</span> {confirmedBooking.address}</p>
+              <p>
+                <span>Status:</span> {confirmedBooking.status === 'assigned' ? 'Assigned to worker' : 'Pending'}
+              </p>
             </div>
 
             <div className="booking-worker-results">
@@ -263,9 +270,20 @@ const BookingModal = ({
                 {formErrors.address && <small>{formErrors.address}</small>}
               </label>
 
-              <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
-                Confirm Booking
+              <button
+                type="submit"
+                className="btn-primary"
+                style={{ width: '100%', marginTop: '0.5rem' }}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Confirming Booking...' : 'Confirm Booking'}
               </button>
+
+              {submissionError ? (
+                <div className="workers-feedback" role="alert" style={{ marginBottom: 0 }}>
+                  {submissionError}
+                </div>
+              ) : null}
             </form>
           </>
         )}

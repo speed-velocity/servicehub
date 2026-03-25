@@ -6,12 +6,14 @@ import express from 'express';
 import {
   authenticateUserAccount,
   authenticateWorkerAccount,
+  createBooking,
   createUserAccount,
   createWorkerAccount,
   createWorker,
   ensureDatabaseReady,
   findWorkerByPhone,
   hasDatabaseConnection,
+  listBookingsForWorker,
   listWorkers,
   updateWorkerAvailability,
   updateWorkerLocation,
@@ -125,6 +127,28 @@ const validateAccountCredentials = (payload) => {
     nextErrors.password = 'Password is required.';
   } else if (payload.password.trim().length < 6) {
     nextErrors.password = 'Password must be at least 6 characters.';
+  }
+
+  return nextErrors;
+};
+
+const validateBookingPayload = (payload) => {
+  const nextErrors = {};
+
+  if (!payload?.customerName?.trim()) {
+    nextErrors.customerName = 'Customer name is required.';
+  }
+
+  if (!payload?.customerPhone?.trim()) {
+    nextErrors.customerPhone = 'Customer phone is required.';
+  }
+
+  if (!payload?.customerAddress?.trim()) {
+    nextErrors.customerAddress = 'Customer address is required.';
+  }
+
+  if (!payload?.service?.trim()) {
+    nextErrors.service = 'Service is required.';
   }
 
   return nextErrors;
@@ -330,6 +354,41 @@ app.post('/api/user-auth/login', async (request, response) => {
     response.json(user);
   } catch (error) {
     response.status(getErrorStatus(error)).json({ error: error.message || 'Unable to login right now.' });
+  }
+});
+
+app.post('/api/bookings', async (request, response) => {
+  const bookingErrors = validateBookingPayload(request.body);
+
+  if (Object.keys(bookingErrors).length > 0) {
+    response.status(400).json({ error: 'Please complete all booking fields.', errors: bookingErrors });
+    return;
+  }
+
+  try {
+    const booking = await createBooking({
+      assignedWorkerId: request.body.assignedWorkerId,
+      userId: request.body.userId,
+      customerName: request.body.customerName,
+      customerPhone: request.body.customerPhone,
+      customerAddress: request.body.customerAddress,
+      service: request.body.service,
+      locationCoordinates: request.body.locationCoordinates,
+    });
+
+    response.status(201).json(booking);
+  } catch (error) {
+    const status = error.message === 'Worker not found.' ? 404 : 500;
+    response.status(status).json({ error: error.message || 'Unable to create booking right now.' });
+  }
+});
+
+app.get('/api/workers/:workerId/bookings', async (request, response) => {
+  try {
+    const bookings = await listBookingsForWorker(request.params.workerId);
+    response.json({ bookings });
+  } catch (error) {
+    response.status(500).json({ error: error.message || 'Unable to load worker bookings.' });
   }
 });
 

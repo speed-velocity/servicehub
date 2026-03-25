@@ -2,6 +2,7 @@ import React from 'react';
 
 const portalLinks = [
   { href: '/', label: 'Home' },
+  { href: '/worker/dashboard', label: 'Worker Dashboard' },
   { href: '/signup', label: 'Sign Up / Login' },
 ];
 

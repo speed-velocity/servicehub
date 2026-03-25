@@ -7,10 +7,12 @@ import Footer from './components/Footer';
 import BookingModal from './components/BookingModal';
 import PortalHeader from './components/PortalHeader';
 import AuthHubPage from './components/AuthHubPage';
+import WorkerDashboardPage from './components/WorkerDashboardPage';
 import './index.css';
 import { serviceOptions } from './constants/services';
 import { reverseGeocodeLocation } from './services/geocoding';
 import { loginUserAccount, loginWorkerAccount, registerUserAccount, registerWorkerAccount } from './services/auth';
+import { createBooking, getWorkerBookings } from './services/bookings';
 import { listenToWorkers, toggleWorkerAvailability, updateWorkerLocation } from './services/workers';
 
 const emptyForm = {
@@ -74,8 +76,58 @@ const getDistanceInKm = (fromLocation, toLocation) => {
   return earthRadiusKm * angularDistance;
 };
 
+const getMatchedWorkersForBooking = (booking, workers) => {
+  if (!booking) {
+    return [];
+  }
+
+  const sortedWorkers = workers
+    .filter((worker) => worker.available && worker.service === booking.service)
+    .map((worker) => ({
+      ...worker,
+      locationScore: getLocationMatchScore(booking.address, worker.location),
+      distanceKm:
+        booking.locationCoordinates && worker.latitude != null && worker.longitude != null
+          ? getDistanceInKm(booking.locationCoordinates, { lat: worker.latitude, lng: worker.longitude })
+          : null,
+    }))
+    .sort((leftWorker, rightWorker) => {
+      if (leftWorker.distanceKm != null && rightWorker.distanceKm != null) {
+        return leftWorker.distanceKm - rightWorker.distanceKm;
+      }
+
+      if (leftWorker.distanceKm != null) {
+        return -1;
+      }
+
+      if (rightWorker.distanceKm != null) {
+        return 1;
+      }
+
+      const locationScoreComparison = rightWorker.locationScore - leftWorker.locationScore;
+
+      if (locationScoreComparison !== 0) {
+        return locationScoreComparison;
+      }
+
+      return leftWorker.name.localeCompare(rightWorker.name);
+    });
+
+  const nearestWorkerId = sortedWorkers.find((worker) => worker.distanceKm != null)?.id || null;
+
+  return sortedWorkers.map((worker) => ({
+    ...worker,
+    isNearest: nearestWorkerId != null ? worker.id === nearestWorkerId : worker === sortedWorkers[0],
+    distanceLabel: worker.distanceKm != null ? `${worker.distanceKm.toFixed(1)} km away` : 'Distance unavailable',
+  }));
+};
+
 const getInitialRoute = () => {
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
+
+  if (path === '/worker/dashboard') {
+    return '/worker/dashboard';
+  }
 
   if (path === '/worker') {
     return '/worker';
@@ -101,9 +153,14 @@ function App() {
   const [bookingForm, setBookingForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState({});
   const [confirmedBooking, setConfirmedBooking] = useState(null);
+  const [bookingError, setBookingError] = useState('');
+  const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
   const [workers, setWorkers] = useState([]);
   const [workersLoading, setWorkersLoading] = useState(true);
   const [workersError, setWorkersError] = useState('');
+  const [workerBookings, setWorkerBookings] = useState([]);
+  const [workerBookingsLoading, setWorkerBookingsLoading] = useState(false);
+  const [workerBookingsError, setWorkerBookingsError] = useState('');
   const [workerActionId, setWorkerActionId] = useState('');
   const [isRegisteringWorker, setIsRegisteringWorker] = useState(false);
   const [isLoggingInWorker, setIsLoggingInWorker] = useState(false);
@@ -182,52 +239,7 @@ function App() {
   }, [workerSession, workers]);
 
   const matchedWorkers = useMemo(() => {
-    if (!confirmedBooking) {
-      return [];
-    }
-
-    const sortedWorkers = workers
-      .filter((worker) => worker.available && worker.service === confirmedBooking.service)
-      .map((worker) => ({
-        ...worker,
-        locationScore: getLocationMatchScore(confirmedBooking.address, worker.location),
-        distanceKm:
-          confirmedBooking.locationCoordinates && worker.latitude != null && worker.longitude != null
-            ? getDistanceInKm(confirmedBooking.locationCoordinates, { lat: worker.latitude, lng: worker.longitude })
-            : null,
-      }))
-      .sort((leftWorker, rightWorker) => {
-        if (leftWorker.distanceKm != null && rightWorker.distanceKm != null) {
-          return leftWorker.distanceKm - rightWorker.distanceKm;
-        }
-
-        if (leftWorker.distanceKm != null) {
-          return -1;
-        }
-
-        if (rightWorker.distanceKm != null) {
-          return 1;
-        }
-
-        const locationScoreComparison = rightWorker.locationScore - leftWorker.locationScore;
-
-        if (locationScoreComparison !== 0) {
-          return locationScoreComparison;
-        }
-
-        return leftWorker.name.localeCompare(rightWorker.name);
-      });
-
-    const nearestWorkerId = sortedWorkers.find((worker) => worker.distanceKm != null)?.id || null;
-
-    return sortedWorkers.map((worker) => ({
-      ...worker,
-      isNearest: nearestWorkerId != null && worker.id === nearestWorkerId,
-      distanceLabel:
-        worker.distanceKm != null
-          ? `${worker.distanceKm.toFixed(1)} km away`
-          : 'Distance unavailable',
-    }));
+    return getMatchedWorkersForBooking(confirmedBooking, workers);
   }, [confirmedBooking, workers]);
 
   useEffect(() => {
@@ -258,6 +270,43 @@ function App() {
       setWorkerLoginError('Your worker session expired. Please sign in again.');
     }
   }, [workerSession, sessionWorker, workersLoading]);
+
+  useEffect(() => {
+    if (!workerSession?.id || route !== '/worker/dashboard') {
+      setWorkerBookings([]);
+      setWorkerBookingsError('');
+      setWorkerBookingsLoading(false);
+      return;
+    }
+
+    let isActive = true;
+
+    setWorkerBookingsLoading(true);
+    setWorkerBookingsError('');
+
+    getWorkerBookings(workerSession.id)
+      .then((bookings) => {
+        if (!isActive) {
+          return;
+        }
+
+        setWorkerBookings(bookings);
+        setWorkerBookingsLoading(false);
+      })
+      .catch((error) => {
+        if (!isActive) {
+          return;
+        }
+
+        setWorkerBookings([]);
+        setWorkerBookingsLoading(false);
+        setWorkerBookingsError(error.message || 'Unable to load your customer bookings right now.');
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [route, workerSession]);
 
   useEffect(() => {
     if (!workerSession || !sessionWorker?.available) {
@@ -349,6 +398,7 @@ function App() {
     setShowBookingServiceSelect(!service);
     setFormErrors({});
     setConfirmedBooking(null);
+    setBookingError('');
     setIsBookingOpen(true);
   };
 
@@ -364,6 +414,7 @@ function App() {
     setBookingLocation(null);
     setIsResolvingBookingAddress(false);
     setShowBookingServiceSelect(false);
+    setBookingError('');
   };
 
   const handleServiceSelect = (service) => {
@@ -411,7 +462,7 @@ function App() {
     });
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const trimmedForm = {
@@ -443,15 +494,44 @@ function App() {
       return;
     }
 
-    setConfirmedBooking({
+    const draftBooking = {
       ...trimmedForm,
       service: trimmedService,
       locationCoordinates: bookingLocation ? { lat: bookingLocation.lat, lng: bookingLocation.lng } : null,
-    });
-    setBookingService('');
-    setIsResolvingBookingAddress(false);
-    setBookingForm(emptyForm);
-    setFormErrors({});
+    };
+    const nextMatchedWorkers = getMatchedWorkersForBooking(draftBooking, workers);
+    const assignedWorker = nextMatchedWorkers[0] || null;
+
+    setIsSubmittingBooking(true);
+    setBookingError('');
+
+    try {
+      const savedBooking = await createBooking({
+        assignedWorkerId: assignedWorker?.id || null,
+        userId: userSession?.id || null,
+        customerName: draftBooking.name,
+        customerPhone: draftBooking.phone,
+        customerAddress: draftBooking.address,
+        service: draftBooking.service,
+        locationCoordinates: draftBooking.locationCoordinates,
+      });
+
+      setConfirmedBooking({
+        ...draftBooking,
+        assignedWorkerId: savedBooking.workerId,
+        status: savedBooking.status,
+        createdAt: savedBooking.createdAt,
+        assignedWorkerName: assignedWorker?.name || '',
+      });
+      setBookingService('');
+      setIsResolvingBookingAddress(false);
+      setBookingForm(emptyForm);
+      setFormErrors({});
+    } catch (error) {
+      setBookingError(error.message || 'Unable to confirm your booking right now.');
+    } finally {
+      setIsSubmittingBooking(false);
+    }
   };
 
   const handleMapLocationSelect = async ({ lat, lng, source = 'map' }) => {
@@ -526,10 +606,14 @@ function App() {
         workerProfile,
       });
 
-      setWorkerSession({
+      const nextSession = {
         id: worker.id,
         email,
-      });
+      };
+
+      setWorkerSession(nextSession);
+      window.localStorage.setItem(workerSessionStorageKey, JSON.stringify(nextSession));
+      window.location.href = '/worker/dashboard';
       return worker;
     } catch (error) {
       setWorkerRegistrationError(error.message || 'Unable to register the worker account right now.');
@@ -550,10 +634,14 @@ function App() {
         password,
       });
 
-      setWorkerSession({
+      const nextSession = {
         id: worker.id,
         email,
-      });
+      };
+
+      setWorkerSession(nextSession);
+      window.localStorage.setItem(workerSessionStorageKey, JSON.stringify(nextSession));
+      window.location.href = '/worker/dashboard';
       return worker;
     } catch (error) {
       setWorkerLoginError(error.message || 'Unable to sign in worker right now.');
@@ -652,17 +740,40 @@ function App() {
     navigateToSignup();
   };
 
-  if (route === '/worker' || route === '/account' || route === '/signup') {
+  if (route === '/worker/dashboard' && workerSession) {
+    return (
+      <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
+        <PortalHeader activePath="/worker/dashboard" />
+        <WorkerDashboardPage
+          workerSession={workerSession}
+          sessionWorker={sessionWorker}
+          workersLoading={workersLoading}
+          isUpdatingAvailability={workerActionId === sessionWorker?.id}
+          locationShareState={locationShareState}
+          bookings={workerBookings}
+          bookingsLoading={workerBookingsLoading}
+          bookingsError={workerBookingsError}
+          onToggleAvailability={handleToggleWorkerAvailability}
+          onLogout={handleLogoutWorker}
+        />
+        <Footer />
+      </div>
+    );
+  }
+
+  if (route === '/worker/dashboard' || route === '/worker' || route === '/account' || route === '/signup') {
     const initialMode =
       authIntent === 'booking'
         ? 'user-login'
         : route === '/worker'
           ? 'worker-register'
+          : route === '/worker/dashboard'
+            ? 'worker-login'
           : 'user-register';
 
     return (
       <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
-        <PortalHeader activePath="/signup" />
+        <PortalHeader activePath={route === '/worker/dashboard' ? '/worker/dashboard' : '/signup'} />
         <AuthHubPage
           authPrompt={
             authIntent === 'booking' ? 'Please login or register first before booking any service.' : ''
@@ -734,6 +845,8 @@ function App() {
         formErrors={formErrors}
         confirmedBooking={confirmedBooking}
         matchedWorkers={matchedWorkers}
+        submissionError={bookingError}
+        isSubmitting={isSubmittingBooking}
         isResolvingAddress={isResolvingBookingAddress}
         selectedLocation={bookingLocation}
         onClose={closeBooking}
