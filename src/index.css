@@ -554,6 +554,190 @@ body::before {
   pointer-events: none;
 }
 
+.hero-stage {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 1440px);
+  display: grid;
+  grid-template-columns: minmax(120px, 220px) minmax(0, 780px) minmax(120px, 220px);
+  gap: clamp(1.4rem, 4vw, 4rem);
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-side-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  width: min(100%, 220px);
+  aspect-ratio: 4 / 3;
+  padding: 0.9rem;
+  border-radius: 30px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015)),
+    radial-gradient(circle at center, rgba(34, 197, 94, 0.06), transparent 68%);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 18px 42px rgba(2, 6, 23, 0.16);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.hero-side-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent 28%);
+  pointer-events: none;
+}
+
+.hero-side-grid-left {
+  justify-self: end;
+}
+
+.hero-side-grid-right {
+  justify-self: start;
+}
+
+.hero-side-cell {
+  position: relative;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015)),
+    rgba(8, 10, 14, 0.56);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 8px 18px rgba(2, 6, 23, 0.12);
+  overflow: hidden;
+  animation: heroSideCellShell var(--hero-grid-duration, 3200ms) linear infinite;
+  animation-delay: var(--hero-grid-delay, 0ms);
+}
+
+.hero-side-cell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(220, 252, 231, 0.24), transparent 28%),
+    linear-gradient(180deg, rgba(110, 255, 156, 0.52), rgba(18, 98, 48, 0.16));
+  transform: translateX(-118%);
+  animation: heroSideCellSlide var(--hero-grid-duration, 3200ms) cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  animation-delay: var(--hero-grid-delay, 0ms);
+}
+
+.hero-side-cell::after {
+  content: '';
+  position: absolute;
+  inset: 20%;
+  border-radius: 12px;
+  background: radial-gradient(circle, rgba(134, 239, 172, 0.64), transparent 68%);
+  opacity: 0;
+  filter: blur(10px);
+  animation: heroSideCellGlow var(--hero-grid-duration, 3200ms) ease-in-out infinite;
+  animation-delay: var(--hero-grid-delay, 0ms);
+}
+
+.hero-side-grid-right .hero-side-cell::before {
+  transform: translateX(118%);
+  animation-name: heroSideCellSlideReverse;
+}
+
+@keyframes heroSideCellShell {
+  0%,
+  60%,
+  100% {
+    border-color: rgba(255,255,255,0.06);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015)),
+      rgba(8, 10, 14, 0.56);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.06),
+      0 8px 18px rgba(2, 6, 23, 0.12);
+    transform: scale(1);
+  }
+
+  14%,
+  28% {
+    border-color: rgba(134, 239, 172, 0.44);
+    background:
+      linear-gradient(180deg, rgba(84, 214, 126, 0.24), rgba(14, 83, 40, 0.1)),
+      rgba(10, 33, 18, 0.92);
+    box-shadow:
+      inset 0 1px 0 rgba(220, 252, 231, 0.18),
+      0 0 0 1px rgba(34, 197, 94, 0.18),
+      0 18px 30px rgba(15, 159, 87, 0.22),
+      0 0 30px rgba(34, 197, 94, 0.16);
+    transform: translateY(-2px) scale(1.04);
+  }
+}
+
+@keyframes heroSideCellSlide {
+  0%,
+  10%,
+  100% {
+    transform: translateX(-118%);
+    opacity: 0;
+  }
+
+  16% {
+    opacity: 1;
+  }
+
+  24% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+
+  34% {
+    transform: translateX(118%);
+    opacity: 0;
+  }
+}
+
+@keyframes heroSideCellSlideReverse {
+  0%,
+  10%,
+  100% {
+    transform: translateX(118%);
+    opacity: 0;
+  }
+
+  16% {
+    opacity: 1;
+  }
+
+  24% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+
+  34% {
+    transform: translateX(-118%);
+    opacity: 0;
+  }
+}
+
+@keyframes heroSideCellGlow {
+  0%,
+  12%,
+  100% {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+
+  20%,
+  28% {
+    opacity: 0.88;
+    transform: scale(1.08);
+  }
+}
+
 .hero-render-copy {
   display: grid;
   justify-items: center;
@@ -1491,6 +1675,14 @@ body::before {
 }
 
 @media (max-width: 640px) {
+  .hero-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-side-grid {
+    display: none;
+  }
+
   .hero-content-shell {
     padding: 1.5rem 1.1rem;
     border-radius: 24px;
