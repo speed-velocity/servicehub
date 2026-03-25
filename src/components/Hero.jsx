@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 const heroStats = [
   { value: '500+', label: 'Verified Pros' },
@@ -6,7 +6,41 @@ const heroStats = [
   { value: '10k+', label: 'Bookings Done' },
 ];
 
+const heroServiceWords = ['electricians', 'plumbers', 'cleaners', 'painters'];
+
 const Hero = ({ onBookNow, onExploreServices }) => {
+  const [activeWordIndex, setActiveWordIndex] = useState(0);
+  const [typedWord, setTypedWord] = useState('');
+  const [isDeletingWord, setIsDeletingWord] = useState(false);
+
+  useEffect(() => {
+    const currentWord = heroServiceWords[activeWordIndex];
+    let timeoutId;
+
+    if (!isDeletingWord && typedWord === currentWord) {
+      timeoutId = window.setTimeout(() => {
+        setIsDeletingWord(true);
+      }, 1100);
+    } else if (isDeletingWord && typedWord.length === 0) {
+      timeoutId = window.setTimeout(() => {
+        setIsDeletingWord(false);
+        setActiveWordIndex((activeWordIndex + 1) % heroServiceWords.length);
+      }, 180);
+    } else {
+      timeoutId = window.setTimeout(() => {
+        const nextWordSlice = isDeletingWord
+          ? currentWord.slice(0, Math.max(typedWord.length - 1, 0))
+          : currentWord.slice(0, typedWord.length + 1);
+
+        setTypedWord(nextWordSlice);
+      }, isDeletingWord ? 48 : 92);
+    }
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [activeWordIndex, isDeletingWord, typedWord]);
+
   return (
     <section
       id="home"
@@ -58,9 +92,14 @@ const Hero = ({ onBookNow, onExploreServices }) => {
         </h1>
 
         <div className="hero-render-copy" style={{ margin: '0 auto 2.5rem' }}>
-          <span className="hero-render-line">Find verified electricians,</span>
-          <span className="hero-render-line">plumbers, cleaners and more</span>
-          <span className="hero-render-line hero-render-line-accent">near you.</span>
+          <span className="hero-render-line">Find verified</span>
+          <span className="hero-render-line hero-render-line-dynamic">
+            <span className={`hero-typeword ${isDeletingWord ? 'is-deleting' : ''}`}>
+              {typedWord || '\u00A0'}
+            </span>
+            <span className="hero-type-caret" aria-hidden="true" />
+          </span>
+          <span className="hero-render-line">near you.</span>
         </div>
 
         <p
