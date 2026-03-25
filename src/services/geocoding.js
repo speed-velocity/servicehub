@@ -1,9 +1,10 @@
 const apiBaseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 const geoapifyApiKey = import.meta.env.VITE_GEOAPIFY_API_KEY || '';
 const geocodeCache = new Map();
+const inFlightGeocodeRequests = new Map();
 
 const getApiUrl = (path) => `${apiBaseUrl}${path}`;
-const getCacheKey = (lat, lng) => `${Number(lat).toFixed(4)},${Number(lng).toFixed(4)}`;
+const getCacheKey = (lat, lng) => `${Number(lat).toFixed(3)},${Number(lng).toFixed(3)}`;
 
 const fetchJsonWithTimeout = async (url, { timeoutMs = 3500, headers, signal } = {}) => {
   const timeoutController = new AbortController();
@@ -134,21 +135,32 @@ export const reverseGeocodeLocation = async (lat, lng, options = {}) => {
     return cachedAddress;
   }
 
-  try {
+  if (!options.signal && inFlightGeocodeRequests.has(cacheKey)) {
+    return inFlightGeocodeRequests.get(cacheKey);
+  }
+
+  const geocodePromise = (async () => {
     const resolvedAddress = await Promise.any([
       resolveFromGeoapify(lat, lng, options.signal),
       resolveFromBackend(lat, lng, options.signal),
+      resolveFromNominatim(lat, lng, options.signal),
     ]);
 
     geocodeCache.set(cacheKey, resolvedAddress);
     return resolvedAddress;
-  } catch {
-    try {
-      const resolvedAddress = await resolveFromNominatim(lat, lng, options.signal);
-      geocodeCache.set(cacheKey, resolvedAddress);
-      return resolvedAddress;
-    } catch (error) {
-      throw error instanceof Error ? error : new Error('Unable to fetch location details right now.');
+  })();
+
+  if (!options.signal) {
+    inFlightGeocodeRequests.set(cacheKey, geocodePromise);
+  }
+
+  try {
+    return await geocodePromise;
+  } catch (error) {
+    throw error instanceof Error ? error : new Error('Unable to fetch location details right now.');
+  } finally {
+    if (!options.signal) {
+      inFlightGeocodeRequests.delete(cacheKey);
     }
   }
 };
