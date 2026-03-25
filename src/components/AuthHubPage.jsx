@@ -14,56 +14,52 @@ const modeContent = {
     register: {
       badge: 'User Signup',
       title: 'Create new account.',
-      description: 'Unlock instant booking, saved sessions, and a smoother return experience on every visit.',
+      description: 'Create your account and get back to booking faster.',
       switchCopy: 'Already a member?',
       switchLabel: 'Log in',
       alternateMode: 'user-login',
       showcaseBadge: 'Join For Free',
-      showcaseTitle: 'Book trusted home services with one secure customer account.',
-      showcaseCopy:
-        'Keep your bookings, access, and future service flow under one polished, secure workspace.',
-      showcasePoints: ['Instant booking access', 'Safer customer sessions', 'Future-ready account flow'],
+      showcaseTitle: 'Trusted home help. One clean account.',
+      showcaseCopy: 'Fast sign-up, quicker returns, and a polished booking flow.',
+      showcasePoints: ['Instant booking', 'Safer sign-in', 'Return faster'],
     },
     login: {
       badge: 'User Login',
       title: 'Welcome back.',
-      description: 'Sign in to continue booking services with your saved account and protected access.',
+      description: 'Jump back in and continue from where you left off.',
       switchCopy: 'Need an account?',
       switchLabel: 'Register',
       alternateMode: 'user-register',
       showcaseBadge: 'Secure Return',
-      showcaseTitle: 'Jump back in and continue booking without starting from scratch.',
-      showcaseCopy:
-        'One login gets you back into your account so you can access services faster and with less friction.',
-      showcasePoints: ['Fast secure sign in', 'Booking-first experience', 'Ready for saved history'],
+      showcaseTitle: 'Back in fast. Ready to book.',
+      showcaseCopy: 'Secure login, clean access, and a smoother repeat experience.',
+      showcasePoints: ['Quick re-entry', 'Protected access', 'Less friction'],
     },
   },
   worker: {
     register: {
       badge: 'Worker Signup',
       title: 'Create worker account.',
-      description: 'Register your worker profile with secure credentials and start managing live availability.',
+      description: 'Set up your worker profile and go live professionally.',
       switchCopy: 'Already registered?',
       switchLabel: 'Log in',
       alternateMode: 'worker-login',
       showcaseBadge: 'Worker Access',
-      showcaseTitle: 'Join the live worker network and manage status professionally.',
-      showcaseCopy:
-        'Create your worker identity once, then control availability, live location, and service visibility from one place.',
-      showcasePoints: ['Real-time worker status', 'Secure worker credentials', 'Live location controls'],
+      showcaseTitle: 'Join the network. Go live faster.',
+      showcaseCopy: 'One setup for status control, visibility, and worker access.',
+      showcasePoints: ['Live status', 'Secure profile', 'Location control'],
     },
     login: {
       badge: 'Worker Login',
       title: 'Worker sign in.',
-      description: 'Log in to go available, share current location, and control your live worker presence.',
+      description: 'Sign in and manage your worker presence instantly.',
       switchCopy: 'New worker here?',
       switchLabel: 'Register',
       alternateMode: 'worker-register',
       showcaseBadge: 'Go Live',
-      showcaseTitle: 'Sign in to control live availability and stay visible to active users.',
-      showcaseCopy:
-        'Keep your worker profile updated, switch online status, and manage your service presence cleanly.',
-      showcasePoints: ['Go available instantly', 'Live visibility controls', 'Secure worker dashboard'],
+      showcaseTitle: 'Control availability in one move.',
+      showcaseCopy: 'Stay visible, update status, and manage your dashboard cleanly.',
+      showcasePoints: ['Go available', 'Stay visible', 'Secure dashboard'],
     },
   },
 };
@@ -195,6 +191,28 @@ const AuthHubPage = ({
   const activeType = currentMode.type;
   const activeAction = currentMode.id.includes('login') ? 'login' : 'register';
   const content = modeContent[activeType][activeAction];
+  const showcaseCards = useMemo(
+    () =>
+      content.showcasePoints.map((point, index) => ({
+        id: `${activeType}-${activeAction}-${index}`,
+        label: index === 0 ? 'Fast Track' : index === 1 ? 'Secure Layer' : 'Smooth Flow',
+        title: point,
+      })),
+    [activeAction, activeType, content.showcasePoints]
+  );
+  const workspaceHighlights = useMemo(
+    () =>
+      activeType === 'user'
+        ? [
+            { label: 'Access', value: activeAction === 'register' ? 'Create Once' : 'Log In Fast' },
+            { label: 'Booking', value: activeAction === 'register' ? 'Ready To Start' : 'Resume In Seconds' },
+          ]
+        : [
+            { label: 'Status', value: activeAction === 'register' ? 'Go Live Ready' : 'Manage Availability' },
+            { label: 'Presence', value: activeAction === 'register' ? 'Secure Setup' : 'Visible To Users' },
+          ],
+    [activeAction, activeType]
+  );
 
   const workerSummary = useMemo(() => {
     if (!sessionWorker) {
@@ -839,28 +857,30 @@ const AuthHubPage = ({
               <p className="auth-showcase-copy">{content.showcaseCopy}</p>
             </div>
 
-            <div className="auth-showcase-glasscard">
-              <p className="auth-showcase-glasslabel">
-                {activeType === 'user' ? 'Customer Workspace' : 'Worker Workspace'}
-              </p>
-              <h3 className="auth-showcase-glassheading">
-                {activeType === 'user'
-                  ? activeAction === 'register'
-                    ? 'Create your account and unlock bookings faster.'
-                    : 'Resume securely and book in a few taps.'
-                  : activeAction === 'register'
-                    ? 'Create your worker identity and go live professionally.'
-                    : 'Sign in to manage availability and current location.'}
-              </h3>
-            </div>
+            <div className="auth-showcase-card-grid">
+              <div className="auth-showcase-glasscard auth-showcase-glasscard-primary">
+                <p className="auth-showcase-glasslabel">
+                  {activeType === 'user' ? 'Customer Workspace' : 'Worker Workspace'}
+                </p>
+                <h3 className="auth-showcase-glassheading">
+                  {activeType === 'user'
+                    ? activeAction === 'register'
+                      ? 'Create once. Book quicker.'
+                      : 'Sign in and move straight to services.'
+                    : activeAction === 'register'
+                      ? 'Set up once. Go live cleanly.'
+                      : 'Sign in and control your status instantly.'}
+                </h3>
+              </div>
 
-            <div className="auth-showcase-points">
-              {content.showcasePoints.map((point) => (
-                <div key={point} className="auth-showcase-point">
-                  <span className="auth-showcase-point-dot" />
-                  <span>{point}</span>
-                </div>
-              ))}
+              <div className="auth-showcase-microgrid">
+                {showcaseCards.map((card) => (
+                  <article key={card.id} className="auth-showcase-mini-card">
+                    <p className="auth-showcase-mini-label">{card.label}</p>
+                    <h3 className="auth-showcase-mini-title">{card.title}</h3>
+                  </article>
+                ))}
+              </div>
             </div>
 
             <div className="auth-showcase-actions">
@@ -886,12 +906,21 @@ const AuthHubPage = ({
                 <p className="auth-switchboard-text">
                   {activeType === 'user'
                     ? activeAction === 'register'
-                      ? 'Create your customer account to unlock bookings and manage future activity.'
-                      : 'Sign in to continue booking services with your saved account.'
+                      ? 'Fast account creation for a cleaner booking flow.'
+                      : 'Secure return access with fewer steps.'
                     : activeAction === 'register'
-                      ? 'Create a worker profile with secure credentials and start managing availability.'
-                      : 'Sign in to control live status, current location, and worker activity.'}
+                      ? 'Create your worker profile and go live smoothly.'
+                      : 'Manage worker access and presence from one place.'}
                 </p>
+              </div>
+
+              <div className="auth-switchboard-highlights">
+                {workspaceHighlights.map((item) => (
+                  <article key={item.label} className="auth-switchboard-card">
+                    <p className="auth-switchboard-card-label">{item.label}</p>
+                    <p className="auth-switchboard-card-value">{item.value}</p>
+                  </article>
+                ))}
               </div>
 
               <div className="auth-switchboard-controls">
