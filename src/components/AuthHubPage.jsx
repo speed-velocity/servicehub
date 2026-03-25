@@ -13,52 +13,52 @@ const modeContent = {
   user: {
     register: {
       badge: 'User Signup',
-      title: 'Create new account.',
-      description: 'Create your account and get back to booking faster.',
+      title: 'Sign up.',
+      description: 'Create your account in a few clean steps.',
       switchCopy: 'Already a member?',
       switchLabel: 'Log in',
       alternateMode: 'user-login',
       showcaseBadge: 'Join For Free',
-      showcaseTitle: 'Trusted home help. One clean account.',
-      showcaseCopy: 'Fast sign-up, quicker returns, and a polished booking flow.',
+      showcaseTitle: 'Let’s get started.',
+      showcaseCopy: 'Trusted services, cleaner access, faster booking.',
       showcasePoints: ['Instant booking', 'Safer sign-in', 'Return faster'],
     },
     login: {
       badge: 'User Login',
-      title: 'Welcome back.',
-      description: 'Jump back in and continue from where you left off.',
+      title: 'Sign in.',
+      description: 'Get back in and continue quickly.',
       switchCopy: 'Need an account?',
       switchLabel: 'Register',
       alternateMode: 'user-register',
       showcaseBadge: 'Secure Return',
-      showcaseTitle: 'Back in fast. Ready to book.',
-      showcaseCopy: 'Secure login, clean access, and a smoother repeat experience.',
+      showcaseTitle: 'Welcome back.',
+      showcaseCopy: 'Secure return access with less friction.',
       showcasePoints: ['Quick re-entry', 'Protected access', 'Less friction'],
     },
   },
   worker: {
     register: {
       badge: 'Worker Signup',
-      title: 'Create worker account.',
-      description: 'Set up your worker profile and go live professionally.',
+      title: 'Worker signup.',
+      description: 'Set up your worker profile and go live.',
       switchCopy: 'Already registered?',
       switchLabel: 'Log in',
       alternateMode: 'worker-login',
       showcaseBadge: 'Worker Access',
-      showcaseTitle: 'Join the network. Go live faster.',
-      showcaseCopy: 'One setup for status control, visibility, and worker access.',
+      showcaseTitle: 'Build your worker profile.',
+      showcaseCopy: 'Secure setup, live control, and cleaner visibility.',
       showcasePoints: ['Live status', 'Secure profile', 'Location control'],
     },
     login: {
       badge: 'Worker Login',
-      title: 'Worker sign in.',
-      description: 'Sign in and manage your worker presence instantly.',
+      title: 'Worker login.',
+      description: 'Sign in and manage your availability instantly.',
       switchCopy: 'New worker here?',
       switchLabel: 'Register',
       alternateMode: 'worker-register',
       showcaseBadge: 'Go Live',
-      showcaseTitle: 'Control availability in one move.',
-      showcaseCopy: 'Stay visible, update status, and manage your dashboard cleanly.',
+      showcaseTitle: 'Go live in one move.',
+      showcaseCopy: 'Stay visible, manage status, and move fast.',
       showcasePoints: ['Go available', 'Stay visible', 'Secure dashboard'],
     },
   },
@@ -195,7 +195,7 @@ const AuthHubPage = ({
     () =>
       content.showcasePoints.map((point, index) => ({
         id: `${activeType}-${activeAction}-${index}`,
-        label: index === 0 ? 'Fast Track' : index === 1 ? 'Secure Layer' : 'Smooth Flow',
+        label: index === 0 ? 'Flash' : index === 1 ? 'Guard' : 'Flow',
         title: point,
       })),
     [activeAction, activeType, content.showcasePoints]
@@ -204,12 +204,12 @@ const AuthHubPage = ({
     () =>
       activeType === 'user'
         ? [
-            { label: 'Access', value: activeAction === 'register' ? 'Create Once' : 'Log In Fast' },
-            { label: 'Booking', value: activeAction === 'register' ? 'Ready To Start' : 'Resume In Seconds' },
+            { label: 'Mode', value: activeAction === 'register' ? 'New Account' : 'Quick Login' },
+            { label: 'Result', value: activeAction === 'register' ? 'Book Faster' : 'Resume Fast' },
           ]
         : [
-            { label: 'Status', value: activeAction === 'register' ? 'Go Live Ready' : 'Manage Availability' },
-            { label: 'Presence', value: activeAction === 'register' ? 'Secure Setup' : 'Visible To Users' },
+            { label: 'Mode', value: activeAction === 'register' ? 'Worker Setup' : 'Worker Login' },
+            { label: 'Result', value: activeAction === 'register' ? 'Go Live' : 'Manage Status' },
           ],
     [activeAction, activeType]
   );
@@ -852,7 +852,7 @@ const AuthHubPage = ({
             </div>
 
             <div className="auth-showcase-copyblock">
-              <p className="auth-showcase-kicker">ServX Access</p>
+              <p className="auth-showcase-kicker">ServX</p>
               <h1 className="auth-showcase-title">{content.showcaseTitle}</h1>
               <p className="auth-showcase-copy">{content.showcaseCopy}</p>
             </div>
@@ -901,17 +901,8 @@ const AuthHubPage = ({
               <div className="auth-switchboard-copy">
                 <div className="section-badge">Secure Access</div>
                 <h2 className="auth-switchboard-title">
-                  {activeType === 'user' ? 'User Account Access' : 'Worker Portal Access'}
+                  {activeType === 'user' ? 'User Access' : 'Worker Access'}
                 </h2>
-                <p className="auth-switchboard-text">
-                  {activeType === 'user'
-                    ? activeAction === 'register'
-                      ? 'Fast account creation for a cleaner booking flow.'
-                      : 'Secure return access with fewer steps.'
-                    : activeAction === 'register'
-                      ? 'Create your worker profile and go live smoothly.'
-                      : 'Manage worker access and presence from one place.'}
-                </p>
               </div>
 
               <div className="auth-switchboard-highlights">
