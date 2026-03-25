@@ -57,17 +57,20 @@ const Hero = ({ onBookNow, onExploreServices }) => {
           Book Trusted Home Services Instantly
         </h1>
 
+        <div className="hero-render-copy" style={{ margin: '0 auto 2.5rem' }}>
+          <span className="hero-render-line">Find verified electricians,</span>
+          <span className="hero-render-line">plumbers, cleaners and more</span>
+          <span className="hero-render-line hero-render-line-accent">near you.</span>
+        </div>
+
         <p
+          className="hero-render-caption"
           style={{
-            fontSize: 'clamp(1rem, 2vw, 1.2rem)',
-            color: '#9ca3af',
-            fontWeight: '400',
-            maxWidth: '540px',
+            maxWidth: '620px',
             margin: '0 auto 2.5rem',
-            lineHeight: '1.7',
           }}
         >
-          Find verified electricians, plumbers, cleaners and more near you. Quality service at your doorstep.
+          Quality service at your doorstep.
         </p>
 
         <div className="hero-actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>

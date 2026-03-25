@@ -554,6 +554,38 @@ body::before {
   pointer-events: none;
 }
 
+.hero-render-copy {
+  display: grid;
+  justify-items: center;
+  gap: 0.1em;
+  max-width: 760px;
+}
+
+.hero-render-line {
+  font-size: clamp(2rem, 5.2vw, 4.9rem);
+  line-height: 0.94;
+  letter-spacing: -0.055em;
+  font-weight: 300;
+  color: rgba(248, 250, 252, 0.96);
+  text-wrap: balance;
+}
+
+.hero-render-line-accent {
+  background: linear-gradient(135deg, #7cf29d 0%, #bbf7d0 35%, #22c55e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 18px rgba(34, 197, 94, 0.18));
+}
+
+.hero-render-caption {
+  color: #90a59b;
+  font-size: clamp(0.98rem, 1.4vw, 1.16rem);
+  line-height: 1.75;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
 .hero-stat-card {
   min-width: 150px;
   padding: 1rem 1.15rem;
@@ -1345,6 +1377,19 @@ body::before {
   .hero-content-shell {
     padding: 1.5rem 1.1rem;
     border-radius: 24px;
+  }
+
+  .hero-render-copy {
+    gap: 0.16em;
+  }
+
+  .hero-render-line {
+    font-size: clamp(1.75rem, 10vw, 3rem);
+    line-height: 0.98;
+  }
+
+  .hero-render-caption {
+    font-size: 0.96rem;
   }
 
   .hero-stat-card {
