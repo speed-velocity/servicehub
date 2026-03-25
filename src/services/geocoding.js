@@ -74,6 +74,36 @@ const resolveFromBackend = async (lat, lng) => {
   return resolvedAddress;
 };
 
+const resolveFromNominatim = async (lat, lng) => {
+  const searchParams = new URLSearchParams({
+    format: 'jsonv2',
+    lat: String(lat),
+    lon: String(lng),
+    addressdetails: '1',
+    zoom: '18',
+    'accept-language': 'en',
+  });
+
+  const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${searchParams.toString()}`, {
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(payload.error || 'Unable to fetch location details right now.');
+  }
+
+  const resolvedAddress = buildReadableAddress(payload.address) || payload.display_name || '';
+
+  if (!resolvedAddress.trim()) {
+    throw new Error('Unable to fetch location details right now.');
+  }
+
+  return resolvedAddress;
+};
+
 export const reverseGeocodeLocation = async (lat, lng) => {
   try {
     return await resolveFromGeoapify(lat, lng);
@@ -81,7 +111,11 @@ export const reverseGeocodeLocation = async (lat, lng) => {
     try {
       return await resolveFromBackend(lat, lng);
     } catch (backendError) {
-      throw backendError instanceof Error ? backendError : frontendError;
+      try {
+        return await resolveFromNominatim(lat, lng);
+      } catch {
+        throw backendError instanceof Error ? backendError : frontendError;
+      }
     }
   }
 };
