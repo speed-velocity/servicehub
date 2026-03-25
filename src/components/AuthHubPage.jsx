@@ -19,8 +19,8 @@ const modeContent = {
       switchLabel: 'Log in',
       alternateMode: 'user-login',
       showcaseBadge: 'Join For Free',
-      showcaseTitle: 'Let’s get started.',
-      showcaseCopy: 'Trusted services, cleaner access, faster booking.',
+      showcaseTitle: "Let's get started.",
+      showcaseCopy: 'Trusted services, cleaner access, and faster booking.',
       showcasePoints: ['Instant booking', 'Safer sign-in', 'Return faster'],
     },
     login: {
@@ -191,18 +191,14 @@ const AuthHubPage = ({
   const activeType = currentMode.type;
   const activeAction = currentMode.id.includes('login') ? 'login' : 'register';
   const content = modeContent[activeType][activeAction];
-  const workspaceHighlights = useMemo(
+  const showcaseCards = useMemo(
     () =>
-      activeType === 'user'
-        ? [
-            { label: 'Mode', value: activeAction === 'register' ? 'New Account' : 'Quick Login' },
-            { label: 'Result', value: activeAction === 'register' ? 'Book Faster' : 'Resume Fast' },
-          ]
-        : [
-            { label: 'Mode', value: activeAction === 'register' ? 'Worker Setup' : 'Worker Login' },
-            { label: 'Result', value: activeAction === 'register' ? 'Go Live' : 'Manage Status' },
-          ],
-    [activeAction, activeType]
+      content.showcasePoints.map((point, index) => ({
+        id: `${activeType}-${activeAction}-${index}`,
+        label: index === 0 ? 'Flash' : index === 1 ? 'Guard' : 'Flow',
+        title: point,
+      })),
+    [activeAction, activeType, content.showcasePoints]
   );
 
   const workerSummary = useMemo(() => {
@@ -834,21 +830,37 @@ const AuthHubPage = ({
         </section>
       ) : null}
 
-      <section className="auth-experience-shell auth-experience-shell-compact">
-        <section className="auth-workspace auth-workspace-full">
+      <section className="auth-experience-shell auth-experience-shell-split">
+        <aside className="auth-showcase-panel">
+          <div className="auth-showcase-sheen" />
+          <div className="auth-showcase-content">
+            <div className="auth-showcase-copyblock">
+              <p className="auth-showcase-kicker">ServX</p>
+              <h1 className="auth-showcase-title">{content.showcaseTitle}</h1>
+              <p className="auth-showcase-copy">{content.showcaseCopy}</p>
+            </div>
+
+            <div className="auth-showcase-card-grid auth-showcase-card-grid-compact">
+              {showcaseCards.map((card) => (
+                <article key={card.id} className="auth-showcase-mini-card">
+                  <p className="auth-showcase-mini-label">{card.label}</p>
+                  <h3 className="auth-showcase-mini-title">{card.title}</h3>
+                </article>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        <section className="auth-workspace auth-workspace-split">
           <div className="auth-workspace-ambient" />
           <div className="auth-workspace-inner">
-            <div className="auth-switchboard auth-switchboard-compact">
-              <div className="auth-switchboard-highlights">
-                {workspaceHighlights.map((item) => (
-                  <article key={item.label} className="auth-switchboard-card">
-                    <p className="auth-switchboard-card-label">{item.label}</p>
-                    <p className="auth-switchboard-card-value">{item.value}</p>
-                  </article>
-                ))}
+            <div className="auth-switchboard auth-switchboard-split">
+              <div className="auth-switchboard-copy">
+                <div className="section-badge">{content.badge}</div>
+                <h2 className="auth-switchboard-title">{activeType === 'user' ? 'User access' : 'Worker access'}</h2>
               </div>
 
-              <div className="auth-switchboard-controls">
+              <div className="auth-switchboard-controls auth-switchboard-controls-split">
                 <div className="auth-segment" role="tablist" aria-label="Account type">
                   {['user', 'worker'].map((type) => (
                     <button

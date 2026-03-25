@@ -1464,55 +1464,43 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
 
 .auth-switchboard {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr);
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.25rem;
   align-items: center;
   margin-bottom: 0;
-  padding: 1rem;
-  border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background:
-    radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 34%),
-    radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.12), transparent 30%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.03));
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
-  box-shadow:
-    0 24px 52px rgba(2, 6, 23, 0.24),
-    inset 0 1px 0 rgba(255,255,255,0.1);
+  padding: 0 0 1.1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .auth-experience-shell {
   position: relative;
-  width: min(100%, 840px);
+  width: min(100%, 1120px);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.08fr);
   align-items: stretch;
-  min-height: calc(100vh - 11.5rem);
-  padding: 1rem;
-  border-radius: 36px;
+  min-height: 720px;
+  border-radius: 34px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(120, 255, 170, 0.18);
   background:
-    radial-gradient(circle at 18% 18%, rgba(34, 197, 94, 0.18), transparent 26%),
-    radial-gradient(circle at 84% 14%, rgba(96, 165, 250, 0.14), transparent 24%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
-    linear-gradient(180deg, rgba(6, 12, 10, 0.88), rgba(3, 6, 8, 0.82));
+    radial-gradient(circle at 14% 20%, rgba(35, 122, 55, 0.5), transparent 21%),
+    radial-gradient(circle at 78% 8%, rgba(61, 164, 89, 0.26), transparent 20%),
+    radial-gradient(circle at 16% 78%, rgba(28, 104, 50, 0.3), transparent 24%),
+    linear-gradient(135deg, rgba(4, 31, 12, 0.96), rgba(1, 12, 5, 0.94));
   box-shadow:
-    0 40px 90px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
+    0 40px 90px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.auth-experience-shell-compact::before {
+.auth-experience-shell-split::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(120deg, rgba(255, 255, 255, 0.08), transparent 32%),
-    radial-gradient(circle at 76% 72%, rgba(255, 255, 255, 0.08), transparent 16%);
+    radial-gradient(circle at 12% 12%, rgba(255, 255, 255, 0.08), transparent 15%),
+    radial-gradient(circle at 23% 58%, rgba(98, 255, 154, 0.08), transparent 18%),
+    radial-gradient(circle at 86% 16%, rgba(255, 255, 255, 0.05), transparent 14%);
   pointer-events: none;
 }
 
@@ -1523,27 +1511,25 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   border-radius: 0;
   border: 0;
   box-shadow: none;
-  backdrop-filter: blur(16px) saturate(130%);
-  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
 }
 
 .auth-showcase-panel {
   min-height: 100%;
   background:
-    radial-gradient(circle at 20% 20%, rgba(51, 163, 83, 0.26), transparent 24%),
-    radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.2), transparent 26%),
-    linear-gradient(180deg, rgba(6, 28, 16, 0.7), rgba(4, 8, 6, 0.8)),
-    linear-gradient(135deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0));
+    radial-gradient(circle at 18% 18%, rgba(73, 187, 98, 0.28), transparent 18%),
+    radial-gradient(circle at 65% 70%, rgba(38, 112, 54, 0.24), transparent 26%),
+    linear-gradient(180deg, rgba(2, 18, 6, 0.48), rgba(1, 12, 5, 0.76));
 }
 
 .auth-showcase-sheen {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 10% 24%, rgba(68, 197, 112, 0.24), transparent 26%),
-    radial-gradient(circle at 28% 12%, rgba(68, 197, 112, 0.2), transparent 20%),
-    radial-gradient(circle at 82% 18%, rgba(255,255,255,0.06), transparent 18%),
-    linear-gradient(180deg, rgba(255,255,255,0.06), transparent 24%, rgba(0, 0, 0, 0.2) 100%);
+    radial-gradient(circle at 14% 22%, rgba(84, 236, 133, 0.16), transparent 24%),
+    radial-gradient(circle at 80% 18%, rgba(255,255,255,0.07), transparent 18%),
+    linear-gradient(180deg, rgba(255,255,255,0.04), transparent 20%, rgba(0, 0, 0, 0.24) 100%);
   pointer-events: none;
 }
 
@@ -1551,10 +1537,10 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   position: relative;
   z-index: 1;
   display: grid;
-  align-content: space-between;
-  gap: 1.4rem;
+  align-content: end;
+  gap: 2rem;
   min-height: 100%;
-  padding: 2.3rem;
+  padding: 3rem 2.8rem;
 }
 
 .auth-showcase-header {
@@ -1585,7 +1571,8 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
 
 .auth-showcase-copyblock {
   display: grid;
-  gap: 0.9rem;
+  gap: 1rem;
+  max-width: 22rem;
 }
 
 .auth-showcase-kicker {
@@ -1597,23 +1584,27 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
 }
 
 .auth-showcase-title {
-  font-size: clamp(2.4rem, 4vw, 4rem);
-  line-height: 0.96;
+  font-size: clamp(2.9rem, 4.3vw, 4.4rem);
+  line-height: 0.93;
   letter-spacing: -0.04em;
   font-weight: 800;
-  max-width: 8ch;
+  max-width: 7ch;
 }
 
 .auth-showcase-copy {
   color: rgba(235, 255, 241, 0.8);
-  max-width: 24rem;
-  line-height: 1.65;
+  max-width: 22rem;
+  line-height: 1.72;
   font-size: 1rem;
 }
 
 .auth-showcase-card-grid {
   display: grid;
-  gap: 0.9rem;
+  gap: 0.85rem;
+}
+
+.auth-showcase-card-grid-compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .auth-showcase-glasscard {
@@ -1653,25 +1644,19 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   font-weight: 700;
 }
 
-.auth-showcase-microgrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.8rem;
-}
-
 .auth-showcase-mini-card {
   position: relative;
   overflow: hidden;
-  min-height: 138px;
-  padding: 1rem;
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  min-height: 124px;
+  padding: 1rem 0.95rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background:
-    linear-gradient(180deg, rgba(11, 16, 12, 0.74), rgba(6, 8, 7, 0.9)),
-    radial-gradient(circle at top right, rgba(68, 197, 112, 0.16), transparent 34%);
+    linear-gradient(180deg, rgba(6, 12, 7, 0.78), rgba(3, 6, 4, 0.92)),
+    radial-gradient(circle at top right, rgba(68, 197, 112, 0.14), transparent 34%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 18px 38px rgba(0, 0, 0, 0.18);
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 18px 38px rgba(0, 0, 0, 0.16);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
@@ -1697,9 +1682,9 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
 .auth-showcase-mini-title {
   position: relative;
   z-index: 1;
-  margin-top: 0.85rem;
+  margin-top: 0.8rem;
   color: #ffffff;
-  font-size: 1rem;
+  font-size: 0.98rem;
   line-height: 1.35;
   font-weight: 700;
 }
@@ -1716,28 +1701,24 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
 }
 
 .auth-workspace {
-  padding: 0;
-  border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
   background:
-    linear-gradient(180deg, rgba(5, 11, 9, 0.42), rgba(3, 6, 8, 0.22)),
-    radial-gradient(circle at 82% 14%, rgba(255, 255, 255, 0.06), transparent 20%);
+    linear-gradient(180deg, rgba(4, 7, 5, 0.7), rgba(1, 3, 2, 0.92)),
+    radial-gradient(circle at 78% 20%, rgba(68, 197, 112, 0.08), transparent 20%);
 }
 
-.auth-workspace-full {
+.auth-workspace-split {
   min-height: 100%;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .auth-workspace-ambient {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 22%),
-    radial-gradient(circle at 10% 16%, rgba(34, 197, 94, 0.14), transparent 22%),
-    radial-gradient(circle at 86% 24%, rgba(96, 165, 250, 0.12), transparent 24%),
-    linear-gradient(transparent calc(100% - 1px), rgba(255, 255, 255, 0.06) calc(100% - 1px)),
-    linear-gradient(90deg, transparent calc(100% - 1px), rgba(255, 255, 255, 0.05) calc(100% - 1px));
-  opacity: 0.8;
+    linear-gradient(180deg, rgba(255,255,255,0.04), transparent 22%),
+    linear-gradient(90deg, rgba(255,255,255,0.05), transparent 1px),
+    radial-gradient(circle at 12% 18%, rgba(46, 204, 96, 0.14), transparent 18%);
+  opacity: 0.55;
   pointer-events: none;
 }
 
@@ -1745,9 +1726,9 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 1.1rem;
+  gap: 1.35rem;
   min-height: 100%;
-  padding: 1.15rem;
+  padding: 2.6rem 2.4rem;
 }
 
 .auth-switchboard-copy {
@@ -1756,8 +1737,8 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
 }
 
 .auth-switchboard-title {
-  font-size: clamp(1.45rem, 3vw, 2rem);
-  line-height: 1.05;
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  line-height: 1;
   letter-spacing: -0.03em;
   font-weight: 800;
 }
@@ -1804,18 +1785,22 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   align-content: center;
 }
 
-.auth-switchboard-compact {
-  grid-template-columns: minmax(0, 1fr) minmax(250px, 290px);
+.auth-switchboard-split {
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 292px);
+}
+
+.auth-switchboard-controls-split {
+  min-width: 250px;
 }
 
 .auth-segment {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.55rem;
-  padding: 0.5rem;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.38rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
@@ -1881,22 +1866,28 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   -webkit-backdrop-filter: blur(22px) saturate(140%);
 }
 
+.auth-workspace .portal-panel-card {
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
 .auth-form-panel {
-  padding: 1.9rem;
-  background:
-    linear-gradient(180deg, rgba(8, 14, 12, 0.42), rgba(0, 0, 0, 0.28)),
-    radial-gradient(circle at 12% 18%, rgba(68, 197, 112, 0.1), transparent 24%);
+  padding: 0.25rem 0 0;
+  background: transparent;
 }
 
 .auth-form-header {
   display: grid;
-  gap: 0.65rem;
-  margin-bottom: 1.25rem;
+  gap: 0.55rem;
+  margin-bottom: 1.65rem;
 }
 
 .auth-form-title {
-  font-size: clamp(2.1rem, 4vw, 3.4rem);
-  line-height: 0.92;
+  font-size: clamp(2rem, 3.4vw, 3rem);
+  line-height: 0.96;
   letter-spacing: -0.04em;
   font-weight: 800;
 }
@@ -1940,6 +1931,76 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   color: #a7b0c2;
   max-width: 560px;
   line-height: 1.62;
+}
+
+.auth-form-panel .portal-form-grid {
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 0;
+}
+
+.auth-form-panel .booking-field {
+  gap: 0.55rem;
+}
+
+.auth-form-panel .booking-field span {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.auth-form-panel .booking-field input,
+.auth-form-panel .booking-field select,
+.auth-form-panel .password-input-shell {
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0;
+  background: transparent;
+  padding: 0.7rem 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+
+.auth-form-panel .booking-field input,
+.auth-form-panel .booking-field select {
+  padding-right: 0;
+}
+
+.auth-form-panel .booking-field input:focus,
+.auth-form-panel .booking-field select:focus {
+  border-color: rgba(74, 222, 128, 0.72);
+  box-shadow: 0 1px 0 0 rgba(74, 222, 128, 0.72);
+  background: transparent;
+}
+
+.auth-form-panel .password-input-shell {
+  gap: 0.5rem;
+}
+
+.auth-form-panel .password-input-shell input {
+  border: 0;
+  padding: 0;
+}
+
+.auth-form-panel .password-toggle-btn {
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.76);
+  border-radius: 0;
+  padding: 0.2rem 0;
+}
+
+.auth-form-panel .password-toggle-btn:hover {
+  background: transparent;
+  color: #ffffff;
+}
+
+.auth-form-panel .portal-submit {
+  margin-top: 0.85rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0f9f57, #15b86a);
+  box-shadow: 0 18px 34px rgba(15, 159, 87, 0.28);
 }
 
 .worker-bookings-panel {
@@ -2114,7 +2175,7 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
 
   .worker-dashboard-stats,
   .worker-bookings-grid,
-  .auth-showcase-microgrid,
+  .auth-showcase-card-grid-compact,
   .auth-switchboard-highlights {
     grid-template-columns: 1fr;
   }
@@ -2123,6 +2184,10 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
     grid-column: auto;
     grid-row: auto;
     min-width: 0;
+  }
+
+  .auth-experience-shell {
+    min-height: auto;
   }
 }
 
@@ -2157,22 +2222,18 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
     justify-content: center;
   }
 
-  .auth-workspace,
-  .auth-form-panel {
-    padding: 1.3rem;
-  }
-
   .auth-experience-shell {
     min-height: auto;
-    padding: 0.75rem;
+    grid-template-columns: 1fr;
   }
 
   .auth-workspace-inner {
-    padding: 0.8rem;
+    padding: 1.5rem 1.3rem;
   }
 
-  .auth-showcase-header {
-    align-items: flex-start;
+  .auth-showcase-content {
+    min-height: 320px;
+    padding: 2.1rem 1.4rem;
   }
 
   .auth-showcase-title,
@@ -2180,15 +2241,11 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
     max-width: none;
   }
 
-  .auth-showcase-actions {
-    flex-direction: column;
-    align-items: stretch;
+  .auth-showcase-card-grid-compact {
+    grid-template-columns: 1fr;
   }
 
-  .auth-showcase-actions .btn-primary,
-  .auth-showcase-actions .auth-showcase-link {
-    width: 100%;
-    text-align: center;
-    justify-content: center;
+  .auth-form-panel {
+    padding-top: 0;
   }
 }
