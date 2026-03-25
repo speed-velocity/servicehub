@@ -535,20 +535,13 @@ function App() {
   };
 
   const handleMapLocationSelect = async ({ lat, lng, source = 'map' }) => {
-    const prefix = source === 'device' ? 'Current device location' : 'Pinned from India map';
-    const fallbackAddress = `${prefix}: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-
     setBookingLocation({ lat, lng, source });
     setBookingForm((currentForm) => ({
       ...currentForm,
-      address: source === 'device' ? 'Finding your nearby locality...' : fallbackAddress,
+      address: '',
     }));
 
     setFormErrors((currentErrors) => {
-      if (!currentErrors.address) {
-        return currentErrors;
-      }
-
       return {
         ...currentErrors,
         address: '',
@@ -567,7 +560,11 @@ function App() {
     } catch {
       setBookingForm((currentForm) => ({
         ...currentForm,
-        address: fallbackAddress,
+        address: '',
+      }));
+      setFormErrors((currentErrors) => ({
+        ...currentErrors,
+        address: 'Address could not be fetched automatically. Please type your full address manually.',
       }));
     } finally {
       setIsResolvingBookingAddress(false);

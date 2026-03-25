@@ -197,7 +197,7 @@ const IndiaLocationPicker = ({ isVisible, selectedLocation, onPick }) => {
         {locationState.status === 'loading'
           ? locationState.message
           : selectedLocation
-            ? `Selected coordinates: ${selectedLocation.lat.toFixed(5)}, ${selectedLocation.lng.toFixed(5)}`
+            ? 'Location selected. We will try to fill the address automatically in the form.'
             : geoapifyApiKey
               ? locationState.message
               : 'Geoapify tile key is missing, so the map is using the default OpenStreetMap tiles for now.'}

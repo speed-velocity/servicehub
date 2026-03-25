@@ -15,5 +15,11 @@ export const reverseGeocodeLocation = async (lat, lng) => {
     throw new Error(payload.error || 'Unable to fetch location details right now.');
   }
 
-  return payload.address || payload.displayName || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  const resolvedAddress = payload.address || payload.displayName || '';
+
+  if (!resolvedAddress.trim()) {
+    throw new Error('Unable to fetch location details right now.');
+  }
+
+  return resolvedAddress;
 };
