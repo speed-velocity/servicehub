@@ -1791,6 +1791,7 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
 
 .auth-switchboard-controls-split {
   min-width: 250px;
+  align-self: start;
 }
 
 .auth-segment {
@@ -1803,10 +1804,6 @@ section > div[style*='z-index: 1'][style*='max-width: 780px'] > div[style*='disp
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-}
-
-.auth-segment-secondary {
-  background: rgba(255, 255, 255, 0.025);
 }
 
 .auth-segment-chip {

@@ -227,10 +227,6 @@ const AuthHubPage = ({
     setActiveMode(`${nextType}-${activeAction}`);
   };
 
-  const switchAction = (nextAction) => {
-    setActiveMode(`${activeType}-${nextAction}`);
-  };
-
   const switchAlternateMode = () => {
     setActiveMode(content.alternateMode);
   };
@@ -870,19 +866,6 @@ const AuthHubPage = ({
                       onClick={() => switchType(type)}
                     >
                       {type === 'user' ? 'User Access' : 'Worker Access'}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="auth-segment auth-segment-secondary" role="tablist" aria-label="Auth action">
-                  {['register', 'login'].map((action) => (
-                    <button
-                      key={action}
-                      type="button"
-                      className={`auth-segment-chip${activeAction === action ? ' is-active' : ''}`}
-                      onClick={() => switchAction(action)}
-                    >
-                      {action === 'register' ? 'Register' : 'Login'}
                     </button>
                   ))}
                 </div>
