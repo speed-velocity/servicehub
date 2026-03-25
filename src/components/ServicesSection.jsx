@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useRef } from 'react';
 import ServiceCard from './ServiceCard';
 
+// SVG Icons
 const icons = {
   electrician: (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -47,10 +48,13 @@ const icons = {
   ),
 };
 
-const allServices = [
+const mainServices = [
   { id: 'electrician', title: 'Electrician', iconKey: 'electrician' },
   { id: 'plumber', title: 'Plumber', iconKey: 'plumber' },
   { id: 'cleaner', title: 'Cleaner', iconKey: 'cleaner' },
+];
+
+const hiddenServices = [
   { id: 'ac-repair', title: 'AC Repair', iconKey: 'ac-repair' },
   { id: 'painter', title: 'Painter', iconKey: 'painter' },
   { id: 'carpenter', title: 'Carpenter', iconKey: 'carpenter' },
@@ -58,55 +62,11 @@ const allServices = [
 ];
 
 const ServicesSection = ({ isLocked = false, onServiceSelect }) => {
-  const carouselRef = useRef(null);
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+  const hiddenRef = useRef(null);
 
-  const updateScrollState = () => {
-    const node = carouselRef.current;
-
-    if (!node) {
-      return;
-    }
-
-    const maxScrollLeft = node.scrollWidth - node.clientWidth;
-    setCanScrollPrev(node.scrollLeft > 8);
-    setCanScrollNext(node.scrollLeft < maxScrollLeft - 8);
-  };
-
-  useEffect(() => {
-    updateScrollState();
-
-    const node = carouselRef.current;
-
-    if (!node) {
-      return undefined;
-    }
-
-    const handleResize = () => updateScrollState();
-
-    node.addEventListener('scroll', updateScrollState, { passive: true });
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      node.removeEventListener('scroll', updateScrollState);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  const handleCarouselMove = (direction) => {
-    const node = carouselRef.current;
-
-    if (!node) {
-      return;
-    }
-
-    const scrollAmount = Math.max(node.clientWidth * 0.82, 280) * direction;
-
-    node.scrollBy({
-      left: scrollAmount,
-      behavior: 'smooth',
-    });
+  const toggleExpanded = () => {
+    setExpanded((prev) => !prev);
   };
 
   return (
@@ -118,9 +78,10 @@ const ServicesSection = ({ isLocked = false, onServiceSelect }) => {
         margin: '0 auto',
       }}
     >
+      {/* Section heading */}
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
         <div className="section-badge" style={{ justifyContent: 'center' }}>
-          * Our Services
+          🔧 Our Services
         </div>
         <h2
           style={{
@@ -139,44 +100,97 @@ const ServicesSection = ({ isLocked = false, onServiceSelect }) => {
         </p>
       </div>
 
-      <div className="services-carousel-shell">
-        <button
-          type="button"
-          className="services-carousel-arrow"
-          onClick={() => handleCarouselMove(-1)}
-          disabled={!canScrollPrev}
-          aria-label="Scroll services left"
-        >
-          &#8249;
-        </button>
+      {/* Main 4-card grid: 3 services + 1 More card */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '1.25rem',
+        }}
+        className="services-grid"
+      >
+        {mainServices.map((service) => (
+          <ServiceCard
+            key={service.id}
+            title={service.title}
+            icon={icons[service.iconKey]}
+            isLocked={isLocked}
+            onClick={() => onServiceSelect?.(service.title)}
+          />
+        ))}
+        {/* More card – always 4th in the row */}
+        <ServiceCard
+          title="More"
+          isMore={true}
+          isExpanded={expanded}
+          onClick={toggleExpanded}
+        />
+      </div>
 
-        <div className="services-carousel-track" ref={carouselRef}>
-          {allServices.map((service) => (
-            <div key={service.id} className="services-carousel-slide">
+      {/* Hidden services section */}
+      <div
+        ref={hiddenRef}
+        className={`hidden-services${expanded ? ' expanded' : ''}`}
+        aria-hidden={!expanded}
+      >
+        <div
+          style={{
+            marginTop: '1.5rem',
+            padding: '1.5rem',
+            background: 'rgba(34, 197, 94, 0.04)',
+            border: '1px solid rgba(34, 197, 94, 0.12)',
+            borderRadius: '16px',
+          }}
+        >
+          <p
+            style={{
+              fontSize: '0.8rem',
+              color: '#6b7280',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              fontWeight: '600',
+              marginBottom: '1rem',
+            }}
+          >
+            More Services
+          </p>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: '1.25rem',
+            }}
+            className="services-grid"
+          >
+            {hiddenServices.map((service) => (
               <ServiceCard
+                key={service.id}
                 title={service.title}
                 icon={icons[service.iconKey]}
                 isLocked={isLocked}
                 onClick={() => onServiceSelect?.(service.title)}
               />
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-
-        <button
-          type="button"
-          className="services-carousel-arrow"
-          onClick={() => handleCarouselMove(1)}
-          disabled={!canScrollNext}
-          aria-label="Scroll services right"
-        >
-          &#8250;
-        </button>
       </div>
 
-      <div className="services-carousel-hint">
-        <span>Slide through all services</span>
-      </div>
+      {/* Responsive grid CSS */}
+      <style>{`
+        .services-grid {
+          grid-template-columns: repeat(4, 1fr);
+        }
+        @media (max-width: 900px) {
+          .services-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        @media (max-width: 500px) {
+          .services-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
     </section>
   );
 };
