@@ -743,7 +743,7 @@ function App() {
   if (route === '/worker/dashboard' && workerSession) {
     return (
       <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
-        <PortalHeader activePath="/worker/dashboard" />
+        <PortalHeader activePath="/worker/dashboard" showWorkerDashboard />
         <WorkerDashboardPage
           workerSession={workerSession}
           sessionWorker={sessionWorker}
@@ -773,7 +773,10 @@ function App() {
 
     return (
       <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
-        <PortalHeader activePath={route === '/worker/dashboard' ? '/worker/dashboard' : '/signup'} />
+        <PortalHeader
+          activePath={route === '/worker/dashboard' ? '/worker/dashboard' : '/signup'}
+          showWorkerDashboard={Boolean(workerSession)}
+        />
         <AuthHubPage
           authPrompt={
             authIntent === 'booking' ? 'Please login or register first before booking any service.' : ''
