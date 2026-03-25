@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { startTransition, useEffect, useState } from 'react';
 
 const heroStats = [
   { value: '500+', label: 'Verified Pros' },
@@ -12,6 +12,8 @@ const Hero = ({ onBookNow, onExploreServices }) => {
   const [activeWordIndex, setActiveWordIndex] = useState(0);
   const [typedWord, setTypedWord] = useState('');
   const [isDeletingWord, setIsDeletingWord] = useState(false);
+  const [displayedStats, setDisplayedStats] = useState(heroStats);
+  const [isShufflingStats, setIsShufflingStats] = useState(false);
 
   useEffect(() => {
     const currentWord = heroServiceWords[activeWordIndex];
@@ -40,6 +42,37 @@ const Hero = ({ onBookNow, onExploreServices }) => {
       window.clearTimeout(timeoutId);
     };
   }, [activeWordIndex, isDeletingWord, typedWord]);
+
+  useEffect(() => {
+    let shuffleSwapTimeoutId;
+    let shuffleResetTimeoutId;
+
+    const shuffleStats = () => {
+      setIsShufflingStats(true);
+
+      shuffleSwapTimeoutId = window.setTimeout(() => {
+        startTransition(() => {
+          setDisplayedStats((currentStats) => {
+            const [firstStat, ...restStats] = currentStats;
+
+            return [...restStats, firstStat];
+          });
+        });
+      }, 280);
+
+      shuffleResetTimeoutId = window.setTimeout(() => {
+        setIsShufflingStats(false);
+      }, 820);
+    };
+
+    const shuffleIntervalId = window.setInterval(shuffleStats, 4200);
+
+    return () => {
+      window.clearInterval(shuffleIntervalId);
+      window.clearTimeout(shuffleSwapTimeoutId);
+      window.clearTimeout(shuffleResetTimeoutId);
+    };
+  }, []);
 
   return (
     <section
@@ -138,29 +171,31 @@ const Hero = ({ onBookNow, onExploreServices }) => {
             flexWrap: 'wrap',
           }}
         >
-          {heroStats.map((stat, index) => {
-            const isEdgeCard = index === 0 || index === heroStats.length - 1;
+          {displayedStats.map((stat, index) => {
+            const isEdgeCard = index === 0 || index === displayedStats.length - 1;
 
             return (
               <div
                 key={stat.label}
-                className={`hero-stat-card ${isEdgeCard ? 'hero-stat-card-edge' : 'hero-stat-card-center'}`}
-                style={{ textAlign: 'center' }}
+                className={`hero-stat-card ${isEdgeCard ? 'hero-stat-card-edge' : 'hero-stat-card-center'} ${isShufflingStats ? 'is-shuffling' : ''}`}
+                style={{ textAlign: 'center', '--hero-shuffle-delay': `${index * 90}ms` }}
               >
-                <div
-                  className="hero-stat-value"
-                  style={{
-                    fontSize: '1.8rem',
-                    fontWeight: '800',
-                    color: '#22c55e',
-                    lineHeight: '1',
-                    marginBottom: '0.3rem',
-                  }}
-                >
-                  {stat.value}
-                </div>
-                <div className="hero-stat-label" style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '500' }}>
-                  {stat.label}
+                <div className="hero-stat-card-body">
+                  <div
+                    className="hero-stat-value"
+                    style={{
+                      fontSize: '1.8rem',
+                      fontWeight: '800',
+                      color: '#22c55e',
+                      lineHeight: '1',
+                      marginBottom: '0.3rem',
+                    }}
+                  >
+                    {stat.value}
+                  </div>
+                  <div className="hero-stat-label" style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '500' }}>
+                    {stat.label}
+                  </div>
                 </div>
               </div>
             );
