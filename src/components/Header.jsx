@@ -124,7 +124,7 @@ const Header = ({ onAuthAction, authActionLabel = 'Sign Up / Login', onBookNow }
               letterSpacing: '-0.02em',
             }}
           >
-            ServiceHub
+            ServX
           </span>
         </div>
 

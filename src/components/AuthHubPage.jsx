@@ -835,7 +835,7 @@ const AuthHubPage = ({
             </div>
 
             <div className="auth-showcase-copyblock">
-              <p className="auth-showcase-kicker">ServiceHub Access</p>
+              <p className="auth-showcase-kicker">ServX Access</p>
               <h1 className="auth-showcase-title">{content.showcaseTitle}</h1>
               <p className="auth-showcase-copy">{content.showcaseCopy}</p>
             </div>

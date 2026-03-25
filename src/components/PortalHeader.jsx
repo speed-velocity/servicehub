@@ -13,7 +13,7 @@ const PortalHeader = ({ activePath, showWorkerDashboard = false }) => {
       <div className="portal-header-inner">
         <a href="/" className="portal-brand">
           <span className="portal-brand-mark">S</span>
-          <span>ServiceHub</span>
+          <span>ServX</span>
         </a>
 
         <nav className="portal-nav" aria-label="Portal navigation">

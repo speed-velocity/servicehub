@@ -28,7 +28,7 @@ const AboutSection = () => {
       <div className="about-section-shell">
         <div className="about-section-copy">
           <div className="section-badge" style={{ marginBottom: '1rem' }}>
-            About ServiceHub
+            About ServX
           </div>
           <h2
             style={{
@@ -50,7 +50,7 @@ const AboutSection = () => {
               marginBottom: '1.75rem',
             }}
           >
-            ServiceHub is built to make home services feel simple. From electricians and plumbers to cleaners
+            ServX is built to make home services feel simple. From electricians and plumbers to cleaners
             and technicians, the platform helps customers discover services quickly and see active workers in a
             single place.
           </p>

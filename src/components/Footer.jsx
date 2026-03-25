@@ -48,7 +48,7 @@ const Footer = () => {
                 backgroundClip: 'text',
               }}
             >
-              ServiceHub
+              ServX
             </span>
           </div>
 
@@ -122,7 +122,7 @@ const Footer = () => {
         </div>
 
         <p style={{ color: '#4b5563', fontSize: '0.82rem' }}>
-          &copy; {new Date().getFullYear()} ServiceHub. All rights reserved. Built with care for your home.
+          &copy; {new Date().getFullYear()} ServX. All rights reserved. Built with care for your home.
         </p>
       </div>
     </footer>
