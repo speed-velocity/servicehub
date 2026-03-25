@@ -1,5 +1,11 @@
 import React from 'react';
 
+const heroStats = [
+  { value: '500+', label: 'Verified Pros' },
+  { value: '4.9+', label: 'Avg. Rating' },
+  { value: '10k+', label: 'Bookings Done' },
+];
+
 const Hero = ({ onBookNow, onExploreServices }) => {
   return (
     <section
@@ -34,7 +40,7 @@ const Hero = ({ onBookNow, onExploreServices }) => {
 
       <div className="hero-content-shell" style={{ position: 'relative', zIndex: 1, maxWidth: '780px' }}>
         <div className="section-badge" style={{ marginBottom: '1.5rem' }}>
-          <span style={{ fontSize: '0.7rem' }}>⭐</span>
+          <span style={{ fontSize: '0.7rem' }}>*</span>
           Trusted by 10,000+ homeowners
         </div>
 
@@ -91,29 +97,33 @@ const Hero = ({ onBookNow, onExploreServices }) => {
             flexWrap: 'wrap',
           }}
         >
-          {[
-            { value: '500+', label: 'Verified Pros' },
-            { value: '4.9★', label: 'Avg. Rating' },
-            { value: '10k+', label: 'Bookings Done' },
-          ].map((stat) => (
-            <div key={stat.label} className="hero-stat-card" style={{ textAlign: 'center' }}>
+          {heroStats.map((stat, index) => {
+            const isEdgeCard = index === 0 || index === heroStats.length - 1;
+
+            return (
               <div
-                className="hero-stat-value"
-                style={{
-                  fontSize: '1.8rem',
-                  fontWeight: '800',
-                  color: '#22c55e',
-                  lineHeight: '1',
-                  marginBottom: '0.3rem',
-                }}
+                key={stat.label}
+                className={`hero-stat-card ${isEdgeCard ? 'hero-stat-card-edge' : 'hero-stat-card-center'}`}
+                style={{ textAlign: 'center' }}
               >
-                {stat.value}
+                <div
+                  className="hero-stat-value"
+                  style={{
+                    fontSize: '1.8rem',
+                    fontWeight: '800',
+                    color: '#22c55e',
+                    lineHeight: '1',
+                    marginBottom: '0.3rem',
+                  }}
+                >
+                  {stat.value}
+                </div>
+                <div className="hero-stat-label" style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '500' }}>
+                  {stat.label}
+                </div>
               </div>
-              <div className="hero-stat-label" style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '500' }}>
-                {stat.label}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
