@@ -1,4 +1,5 @@
 import React, { startTransition, useEffect, useState } from 'react';
+import AnimatedHighlightGrid from './AnimatedHighlightGrid';
 
 const heroStats = [
   { value: '500+', label: 'Verified Pros' },
@@ -105,102 +106,108 @@ const Hero = ({ onBookNow, onExploreServices }) => {
         }}
       />
 
-      <div className="hero-content-shell" style={{ position: 'relative', zIndex: 1, maxWidth: '780px' }}>
-        <div className="section-badge" style={{ marginBottom: '1.5rem' }}>
-          <span style={{ fontSize: '0.7rem' }}>*</span>
-          Trusted by 10,000+ homeowners
-        </div>
+      <div className="hero-stage">
+        <AnimatedHighlightGrid className="hero-side-accent hero-side-accent-left" />
 
-        <h1
-          style={{
-            fontSize: 'clamp(2.5rem, 6vw, 4rem)',
-            fontWeight: '900',
-            lineHeight: '1.1',
-            letterSpacing: '-0.03em',
-            marginBottom: '1.5rem',
-          }}
-          className="gradient-text"
-        >
-          Book Trusted Home Services Instantly
-        </h1>
+        <div className="hero-content-shell" style={{ position: 'relative', zIndex: 1, maxWidth: '780px' }}>
+          <div className="section-badge" style={{ marginBottom: '1.5rem' }}>
+            <span style={{ fontSize: '0.7rem' }}>*</span>
+            Trusted by 10,000+ homeowners
+          </div>
 
-        <div className="hero-render-copy" style={{ margin: '0 auto 2.5rem' }}>
-          <span className="hero-render-line">Find verified</span>
-          <span className="hero-render-line hero-render-line-dynamic">
-            <span className={`hero-typeword ${isDeletingWord ? 'is-deleting' : ''}`}>
-              {typedWord || '\u00A0'}
+          <h1
+            style={{
+              fontSize: 'clamp(2.5rem, 6vw, 4rem)',
+              fontWeight: '900',
+              lineHeight: '1.1',
+              letterSpacing: '-0.03em',
+              marginBottom: '1.5rem',
+            }}
+            className="gradient-text"
+          >
+            Book Trusted Home Services Instantly
+          </h1>
+
+          <div className="hero-render-copy" style={{ margin: '0 auto 2.5rem' }}>
+            <span className="hero-render-line">Find verified</span>
+            <span className="hero-render-line hero-render-line-dynamic">
+              <span className={`hero-typeword ${isDeletingWord ? 'is-deleting' : ''}`}>
+                {typedWord || '\u00A0'}
+              </span>
             </span>
-          </span>
-          <span className="hero-render-line">near you.</span>
-        </div>
+            <span className="hero-render-line">near you.</span>
+          </div>
 
-        <p
-          className="hero-render-caption"
-          style={{
-            maxWidth: '620px',
-            margin: '0 auto 2.5rem',
-          }}
-        >
-          Quality service at your doorstep.
-        </p>
-
-        <div className="hero-actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button
-            className="btn-primary"
-            style={{ fontSize: '1.05rem', padding: '0.9rem 2.5rem' }}
-            onClick={onBookNow}
+          <p
+            className="hero-render-caption"
+            style={{
+              maxWidth: '620px',
+              margin: '0 auto 2.5rem',
+            }}
           >
-            Book a Service
-          </button>
-          <button
-            className="btn-outline"
-            style={{ fontSize: '1.05rem', padding: '0.9rem 2.5rem' }}
-            onClick={onExploreServices}
+            Quality service at your doorstep.
+          </p>
+
+          <div className="hero-actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              className="btn-primary"
+              style={{ fontSize: '1.05rem', padding: '0.9rem 2.5rem' }}
+              onClick={onBookNow}
+            >
+              Book a Service
+            </button>
+            <button
+              className="btn-outline"
+              style={{ fontSize: '1.05rem', padding: '0.9rem 2.5rem' }}
+              onClick={onExploreServices}
+            >
+              Explore Services
+            </button>
+          </div>
+
+          <div
+            className="hero-stats-row"
+            style={{
+              display: 'flex',
+              gap: '3rem',
+              justifyContent: 'center',
+              marginTop: '4rem',
+              flexWrap: 'wrap',
+            }}
           >
-            Explore Services
-          </button>
-        </div>
+            {displayedStats.map((stat, index) => {
+              const isEdgeCard = index === 0 || index === displayedStats.length - 1;
 
-        <div
-          className="hero-stats-row"
-          style={{
-            display: 'flex',
-            gap: '3rem',
-            justifyContent: 'center',
-            marginTop: '4rem',
-            flexWrap: 'wrap',
-          }}
-        >
-          {displayedStats.map((stat, index) => {
-            const isEdgeCard = index === 0 || index === displayedStats.length - 1;
-
-            return (
-              <div
-                key={stat.label}
-                className={`hero-stat-card ${isEdgeCard ? 'hero-stat-card-edge' : 'hero-stat-card-center'} ${isShufflingStats ? 'is-shuffling' : ''}`}
-                style={{ textAlign: 'center', '--hero-shuffle-delay': `${index * 90}ms` }}
-              >
-                <div className="hero-stat-card-body">
-                  <div
-                    className="hero-stat-value"
-                    style={{
-                      fontSize: '1.8rem',
-                      fontWeight: '800',
-                      color: '#22c55e',
-                      lineHeight: '1',
-                      marginBottom: '0.3rem',
-                    }}
-                  >
-                    {stat.value}
-                  </div>
-                  <div className="hero-stat-label" style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '500' }}>
-                    {stat.label}
+              return (
+                <div
+                  key={stat.label}
+                  className={`hero-stat-card ${isEdgeCard ? 'hero-stat-card-edge' : 'hero-stat-card-center'} ${isShufflingStats ? 'is-shuffling' : ''}`}
+                  style={{ textAlign: 'center', '--hero-shuffle-delay': `${index * 90}ms` }}
+                >
+                  <div className="hero-stat-card-body">
+                    <div
+                      className="hero-stat-value"
+                      style={{
+                        fontSize: '1.8rem',
+                        fontWeight: '800',
+                        color: '#22c55e',
+                        lineHeight: '1',
+                        marginBottom: '0.3rem',
+                      }}
+                    >
+                      {stat.value}
+                    </div>
+                    <div className="hero-stat-label" style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '500' }}>
+                      {stat.label}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
+
+        <AnimatedHighlightGrid mirrored className="hero-side-accent hero-side-accent-right" />
       </div>
     </section>
   );

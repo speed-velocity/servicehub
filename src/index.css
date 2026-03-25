@@ -554,6 +554,29 @@ body::before {
   pointer-events: none;
 }
 
+.hero-stage {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 1360px);
+  display: grid;
+  grid-template-columns: minmax(140px, 224px) minmax(0, 780px) minmax(140px, 224px);
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 3vw, 2.8rem);
+}
+
+.hero-side-accent {
+  width: 100%;
+}
+
+.hero-side-accent-left {
+  justify-self: end;
+}
+
+.hero-side-accent-right {
+  justify-self: start;
+}
+
 .hero-render-copy {
   display: grid;
   justify-items: center;
@@ -1491,6 +1514,14 @@ body::before {
 }
 
 @media (max-width: 640px) {
+  .hero-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-side-accent {
+    display: none;
+  }
+
   .hero-content-shell {
     padding: 1.5rem 1.1rem;
     border-radius: 24px;
