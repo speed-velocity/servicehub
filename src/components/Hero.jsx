@@ -82,6 +82,7 @@ const Hero = ({ onBookNow, onExploreServices }) => {
         </div>
 
         <div
+          className="hero-stats-row"
           style={{
             display: 'flex',
             gap: '3rem',
@@ -95,8 +96,9 @@ const Hero = ({ onBookNow, onExploreServices }) => {
             { value: '4.9★', label: 'Avg. Rating' },
             { value: '10k+', label: 'Bookings Done' },
           ].map((stat) => (
-            <div key={stat.label} style={{ textAlign: 'center' }}>
+            <div key={stat.label} className="hero-stat-card" style={{ textAlign: 'center' }}>
               <div
+                className="hero-stat-value"
                 style={{
                   fontSize: '1.8rem',
                   fontWeight: '800',
@@ -107,7 +109,7 @@ const Hero = ({ onBookNow, onExploreServices }) => {
               >
                 {stat.value}
               </div>
-              <div style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '500' }}>
+              <div className="hero-stat-label" style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '500' }}>
                 {stat.label}
               </div>
             </div>
