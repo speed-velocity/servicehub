@@ -16,6 +16,8 @@ const aboutHighlights = [
 ];
 
 const AboutSection = () => {
+  const marqueeHighlights = [...aboutHighlights, ...aboutHighlights];
+
   return (
     <section
       id="about"
@@ -67,9 +69,14 @@ const AboutSection = () => {
           </p>
         </div>
 
-        <div className="about-highlights-grid">
-          {aboutHighlights.map((item) => (
-            <article key={item.title} className="about-highlight-card">
+        <div className="about-highlights-marquee">
+          <div className="about-highlights-track">
+            {marqueeHighlights.map((item, index) => (
+              <article
+                key={`${item.title}-${index}`}
+                className="about-highlight-card"
+                aria-hidden={index >= aboutHighlights.length}
+              >
               <div className="about-highlight-dot" />
               <h3
                 style={{
@@ -90,8 +97,9 @@ const AboutSection = () => {
               >
                 {item.description}
               </p>
-            </article>
-          ))}
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>
