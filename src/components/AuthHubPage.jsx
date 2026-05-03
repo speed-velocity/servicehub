@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import BookingChatPanel from './BookingChatPanel';
 import { serviceOptions } from '../constants/services';
 import WorkerSessionPanel from './WorkerSessionPanel';
 
@@ -154,6 +155,9 @@ const AuthHubPage = ({
   isLoggingInUser,
   userRegistrationError,
   userLoginError,
+  userBookings,
+  userBookingsLoading,
+  userBookingsError,
   locationShareState,
   onRegisterWorker,
   onLoginWorker,
@@ -766,23 +770,95 @@ const AuthHubPage = ({
 
     if (currentMode.type === 'user' && userSession) {
       return (
-        <section className="portal-panel-card portal-stack auth-form-panel">
-          <div className="auth-form-header">
-            <div className="section-badge">Signed In</div>
-            <h2 className="auth-form-title">{userSession.email}</h2>
-            <p className="portal-inline-copy">
-              Your account is active on this device. You can return to the home page and continue booking anytime.
-            </p>
-          </div>
+        <section className="portal-stack">
+          <section className="portal-panel-card portal-stack auth-form-panel">
+            <div className="auth-form-header">
+              <div className="section-badge">Signed In</div>
+              <h2 className="auth-form-title">{userSession.email}</h2>
+              <p className="portal-inline-copy">
+                Your account is active on this device. You can review your bookings here and chat with assigned workers.
+              </p>
+            </div>
 
-          <div className="portal-account-actions">
-            <a href="/" className="btn-primary portal-action-link">
-              Go To Home
-            </a>
-            <button type="button" className="btn-outline portal-action-link" onClick={onLogoutUser}>
-              Logout
-            </button>
-          </div>
+            <div className="portal-account-actions">
+              <a href="/" className="btn-primary portal-action-link">
+                Go To Home
+              </a>
+              <button type="button" className="btn-outline portal-action-link" onClick={onLogoutUser}>
+                Logout
+              </button>
+            </div>
+          </section>
+
+          <section className="portal-panel-card worker-bookings-panel">
+            <div className="worker-bookings-header">
+              <div>
+                <div className="section-badge" style={{ marginBottom: '0.9rem' }}>
+                  My Bookings
+                </div>
+                <h2 className="portal-panel-title">Customer booking chats</h2>
+                <p className="portal-inline-copy">
+                  Every booking created from your account appears here. Once a worker is assigned, you can chat directly.
+                </p>
+              </div>
+              <div className="worker-bookings-count">{userBookings.length} total</div>
+            </div>
+
+            {userBookingsLoading ? (
+              <div className="workers-empty-state" style={{ marginBottom: 0 }}>
+                Loading your bookings...
+              </div>
+            ) : null}
+
+            {!userBookingsLoading && userBookingsError ? (
+              <div className="workers-feedback" role="alert" style={{ marginBottom: 0 }}>
+                {userBookingsError}
+              </div>
+            ) : null}
+
+            {!userBookingsLoading && !userBookingsError && userBookings.length === 0 ? (
+              <div className="workers-empty-state" style={{ marginBottom: 0 }}>
+                You have not created any bookings yet.
+              </div>
+            ) : null}
+
+            {!userBookingsLoading && !userBookingsError && userBookings.length > 0 ? (
+              <div className="worker-bookings-grid">
+                {userBookings.map((booking) => (
+                  <article key={booking.id} className="worker-booking-card">
+                    <div className="worker-booking-card-top">
+                      <div>
+                        <p className="worker-name">{booking.workerName || 'Worker pending'}</p>
+                        <p className="worker-meta">{booking.service}</p>
+                      </div>
+                      <span className={`worker-status ${booking.status === 'assigned' ? 'available' : 'busy'}`}>
+                        {booking.status === 'assigned' ? 'Assigned' : 'Pending'}
+                      </span>
+                    </div>
+
+                    <div className="worker-booking-details">
+                      <p>
+                        <span>Worker Phone:</span>{' '}
+                        {booking.workerPhone ? (
+                          <a href={`tel:${booking.workerPhone.replace(/\s+/g, '')}`}>{booking.workerPhone}</a>
+                        ) : (
+                          'Will appear after assignment'
+                        )}
+                      </p>
+                      <p>
+                        <span>Address:</span> {booking.customerAddress}
+                      </p>
+                      <p>
+                        <span>Customer Name:</span> {booking.customerName}
+                      </p>
+                    </div>
+
+                    <BookingChatPanel booking={booking} viewerType="user" viewerId={userSession.id} />
+                  </article>
+                ))}
+              </div>
+            ) : null}
+          </section>
         </section>
       );
     }

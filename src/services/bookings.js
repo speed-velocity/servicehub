@@ -30,3 +30,38 @@ export const getWorkerBookings = async (workerId) => {
 
   return payload.bookings || [];
 };
+
+export const getUserBookings = async (userId) => {
+  const response = await fetch(getApiUrl(`/api/users/${userId}/bookings`));
+  const payload = await parseJsonResponse(response);
+
+  return payload.bookings || [];
+};
+
+export const getBookingMessages = async (bookingId, actorType, actorId) => {
+  const searchParams = new URLSearchParams({
+    actorType,
+    actorId,
+  });
+
+  const response = await fetch(getApiUrl(`/api/bookings/${bookingId}/messages?${searchParams.toString()}`));
+  const payload = await parseJsonResponse(response);
+
+  return payload.messages || [];
+};
+
+export const sendBookingMessage = async (bookingId, { actorType, actorId, message }) => {
+  const response = await fetch(getApiUrl(`/api/bookings/${bookingId}/messages`), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      actorType,
+      actorId,
+      message,
+    }),
+  });
+
+  return parseJsonResponse(response);
+};

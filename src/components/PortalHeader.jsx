@@ -1,8 +1,9 @@
 import React from 'react';
-const PortalHeader = ({ activePath, showWorkerDashboard = false }) => {
+const PortalHeader = ({ activePath, showWorkerDashboard = false, showUserAccount = false }) => {
   const normalizedPath = activePath === '/' ? '/' : activePath.replace(/\/$/, '');
   const portalLinks = [
     { href: '/', label: 'Home' },
+    ...(showUserAccount ? [{ href: '/account', label: 'My Account' }] : []),
     ...(showWorkerDashboard ? [{ href: '/worker/dashboard', label: 'Worker Dashboard' }] : []),
     { href: '/signup', label: 'Sign Up / Login' },
   ];

@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import BookingChatPanel from './BookingChatPanel';
 import WorkerSessionPanel from './WorkerSessionPanel';
 
 const bookingDateFormatter = new Intl.DateTimeFormat('en-IN', {
@@ -150,6 +151,8 @@ const WorkerDashboardPage = ({
                     <span>Booked At:</span> {bookingDateFormatter.format(new Date(booking.createdAt))}
                   </p>
                 </div>
+
+                <BookingChatPanel booking={booking} viewerType="worker" viewerId={sessionWorker.id} />
               </article>
             ))}
           </div>

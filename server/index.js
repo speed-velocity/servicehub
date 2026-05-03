@@ -6,12 +6,15 @@ import express from 'express';
 import {
   authenticateUserAccount,
   authenticateWorkerAccount,
+  createBookingMessage,
   createBooking,
   createUserAccount,
   createWorkerAccount,
   createWorker,
   ensureDatabaseReady,
   findWorkerByPhone,
+  listBookingMessages,
+  listBookingsForUser,
   hasDatabaseConnection,
   listBookingsForWorker,
   listWorkers,
@@ -191,6 +194,24 @@ const validateBookingPayload = (payload) => {
 
   if (!payload?.service?.trim()) {
     nextErrors.service = 'Service is required.';
+  }
+
+  return nextErrors;
+};
+
+const validateChatPayload = (payload) => {
+  const nextErrors = {};
+
+  if (!payload?.actorType?.trim()) {
+    nextErrors.actorType = 'Actor type is required.';
+  }
+
+  if (!payload?.actorId?.trim()) {
+    nextErrors.actorId = 'Actor id is required.';
+  }
+
+  if (payload.message !== undefined && !payload?.message?.trim()) {
+    nextErrors.message = 'Message is required.';
   }
 
   return nextErrors;
@@ -431,6 +452,89 @@ app.get('/api/workers/:workerId/bookings', async (request, response) => {
     response.json({ bookings });
   } catch (error) {
     response.status(500).json({ error: error.message || 'Unable to load worker bookings.' });
+  }
+});
+
+app.get('/api/users/:userId/bookings', async (request, response) => {
+  try {
+    const bookings = await listBookingsForUser(request.params.userId);
+    response.json({ bookings });
+  } catch (error) {
+    response.status(500).json({ error: error.message || 'Unable to load your bookings.' });
+  }
+});
+
+app.get('/api/bookings/:bookingId/messages', async (request, response) => {
+  const validationErrors = validateChatPayload({
+    actorType: request.query.actorType,
+    actorId: request.query.actorId,
+  });
+
+  if (Object.keys(validationErrors).length > 0) {
+    response.status(400).json({ error: 'Chat actor details are required.', errors: validationErrors });
+    return;
+  }
+
+  try {
+    const messages = await listBookingMessages({
+      bookingId: request.params.bookingId,
+      actorType: String(request.query.actorType),
+      actorId: String(request.query.actorId),
+    });
+
+    response.json({ messages });
+  } catch (error) {
+    const status =
+      error.message === 'Booking not found.'
+        ? 404
+        : error.message === 'No worker is assigned to this booking yet.'
+          ? 409
+          : error.message === 'This booking is not linked to a user account.'
+            ? 409
+            : error.message === 'Invalid actor type.' || error.message === 'Actor id is required.'
+              ? 400
+          : error.message === 'You cannot access this booking chat.'
+            ? 403
+            : 500;
+
+    response.status(status).json({ error: error.message || 'Unable to load booking chat right now.' });
+  }
+});
+
+app.post('/api/bookings/:bookingId/messages', async (request, response) => {
+  const validationErrors = validateChatPayload(request.body);
+
+  if (Object.keys(validationErrors).length > 0) {
+    response.status(400).json({ error: 'Complete the chat message fields.', errors: validationErrors });
+    return;
+  }
+
+  try {
+    const message = await createBookingMessage({
+      bookingId: request.params.bookingId,
+      senderType: request.body.actorType,
+      senderId: request.body.actorId,
+      message: request.body.message,
+    });
+
+    response.status(201).json(message);
+  } catch (error) {
+    const status =
+      error.message === 'Message is required.'
+        ? 400
+        : error.message === 'Booking not found.'
+          ? 404
+          : error.message === 'No worker is assigned to this booking yet.'
+            ? 409
+            : error.message === 'This booking is not linked to a user account.'
+              ? 409
+              : error.message === 'Invalid actor type.' || error.message === 'Actor id is required.'
+                ? 400
+            : error.message === 'You cannot access this booking chat.'
+              ? 403
+              : 500;
+
+    response.status(status).json({ error: error.message || 'Unable to send your chat message right now.' });
   }
 });
 

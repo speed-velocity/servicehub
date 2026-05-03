@@ -12,7 +12,7 @@ import './index.css';
 import { serviceOptions } from './constants/services';
 import { reverseGeocodeLocation } from './services/geocoding';
 import { loginUserAccount, loginWorkerAccount, registerUserAccount, registerWorkerAccount } from './services/auth';
-import { createBooking, getWorkerBookings } from './services/bookings';
+import { createBooking, getUserBookings, getWorkerBookings } from './services/bookings';
 import { listenToWorkers, toggleWorkerAvailability, updateWorkerLocation } from './services/workers';
 
 const emptyForm = {
@@ -157,6 +157,9 @@ function App() {
   const [workers, setWorkers] = useState([]);
   const [workersLoading, setWorkersLoading] = useState(true);
   const [workersError, setWorkersError] = useState('');
+  const [userBookings, setUserBookings] = useState([]);
+  const [userBookingsLoading, setUserBookingsLoading] = useState(false);
+  const [userBookingsError, setUserBookingsError] = useState('');
   const [workerBookings, setWorkerBookings] = useState([]);
   const [workerBookingsLoading, setWorkerBookingsLoading] = useState(false);
   const [workerBookingsError, setWorkerBookingsError] = useState('');
@@ -308,6 +311,43 @@ function App() {
       isActive = false;
     };
   }, [route, workerSession]);
+
+  useEffect(() => {
+    if (!userSession?.id || (route !== '/account' && route !== '/signup')) {
+      setUserBookings([]);
+      setUserBookingsError('');
+      setUserBookingsLoading(false);
+      return;
+    }
+
+    let isActive = true;
+
+    setUserBookingsLoading(true);
+    setUserBookingsError('');
+
+    getUserBookings(userSession.id)
+      .then((bookings) => {
+        if (!isActive) {
+          return;
+        }
+
+        setUserBookings(bookings);
+        setUserBookingsLoading(false);
+      })
+      .catch((error) => {
+        if (!isActive) {
+          return;
+        }
+
+        setUserBookings([]);
+        setUserBookingsLoading(false);
+        setUserBookingsError(error.message || 'Unable to load your bookings right now.');
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [route, userSession]);
 
   useEffect(() => {
     if (!workerSession || !sessionWorker?.available) {
@@ -761,7 +801,7 @@ function App() {
   if (route === '/worker/dashboard' && workerSession) {
     return (
       <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
-        <PortalHeader activePath="/worker/dashboard" showWorkerDashboard />
+        <PortalHeader activePath="/worker/dashboard" showWorkerDashboard showUserAccount={Boolean(userSession)} />
         <WorkerDashboardPage
           workerSession={workerSession}
           sessionWorker={sessionWorker}
@@ -792,8 +832,9 @@ function App() {
     return (
       <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
         <PortalHeader
-          activePath={route === '/worker/dashboard' ? '/worker/dashboard' : '/signup'}
+          activePath={route === '/worker/dashboard' ? '/worker/dashboard' : route === '/account' ? '/account' : '/signup'}
           showWorkerDashboard={Boolean(workerSession)}
+          showUserAccount={Boolean(userSession)}
         />
         <AuthHubPage
           authPrompt={
@@ -813,6 +854,9 @@ function App() {
           isLoggingInUser={isLoggingInUser}
           userRegistrationError={userRegistrationError}
           userLoginError={userLoginError}
+          userBookings={userBookings}
+          userBookingsLoading={userBookingsLoading}
+          userBookingsError={userBookingsError}
           locationShareState={locationShareState}
           onRegisterWorker={handleRegisterWorker}
           onLoginWorker={handleLoginWorker}

@@ -132,6 +132,7 @@ const memoryWorkers = defaultWorkers.map((worker) => ({
 const memoryWorkerAccounts = [];
 const memoryUserAccounts = [];
 const memoryBookings = [];
+const memoryBookingMessages = [];
 
 const sortWorkers = (workers) =>
   [...workers].sort((leftWorker, rightWorker) => {
@@ -174,11 +175,76 @@ const normalizeBookingRow = (row) => ({
   customerAddress: row.customer_address || row.customerAddress || '',
   service: row.service,
   status: row.status || 'assigned',
+  workerName: row.worker_name || row.workerName || '',
+  workerPhone: row.worker_phone || row.workerPhone || '',
   latitude: row.latitude == null ? null : Number(row.latitude),
   longitude: row.longitude == null ? null : Number(row.longitude),
   createdAt: row.created_at ? new Date(row.created_at).getTime() : row.createdAt || 0,
   updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : row.updatedAt || 0,
 });
+
+const normalizeBookingMessageRow = (row) => ({
+  id: row.id,
+  bookingId: row.booking_id || row.bookingId,
+  senderType: row.sender_type || row.senderType,
+  senderId: row.sender_id || row.senderId,
+  message: row.message || '',
+  createdAt: row.created_at ? new Date(row.created_at).getTime() : row.createdAt || 0,
+});
+
+const attachWorkerSnapshotToBooking = (booking) => {
+  if (!booking?.workerId) {
+    return {
+      ...booking,
+      workerName: booking?.workerName || '',
+      workerPhone: booking?.workerPhone || '',
+    };
+  }
+
+  const assignedWorker = memoryWorkers.find((worker) => worker.id === booking.workerId) || null;
+
+  return {
+    ...booking,
+    workerName: assignedWorker?.name || booking.workerName || '',
+    workerPhone: assignedWorker?.phone || booking.workerPhone || '',
+  };
+};
+
+const getBookingChatAccessError = (booking, actorType, actorId) => {
+  if (!booking) {
+    return 'Booking not found.';
+  }
+
+  if (!actorId?.trim()) {
+    return 'Actor id is required.';
+  }
+
+  if (actorType === 'user') {
+    if (!booking.userId) {
+      return 'This booking is not linked to a user account.';
+    }
+
+    if (booking.userId !== actorId) {
+      return 'You cannot access this booking chat.';
+    }
+
+    return '';
+  }
+
+  if (actorType === 'worker') {
+    if (!booking.workerId) {
+      return 'No worker is assigned to this booking yet.';
+    }
+
+    if (booking.workerId !== actorId) {
+      return 'You cannot access this booking chat.';
+    }
+
+    return '';
+  }
+
+  return 'Invalid actor type.';
+};
 
 export const ensureDatabaseReady = async () => {
   if (!pool) {
@@ -264,6 +330,17 @@ export const ensureDatabaseReady = async () => {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS booking_messages (
+      id TEXT PRIMARY KEY,
+      booking_id TEXT NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+      sender_type TEXT NOT NULL,
+      sender_id TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
     CREATE INDEX IF NOT EXISTS workers_service_idx
     ON workers(service);
   `);
@@ -281,6 +358,16 @@ export const ensureDatabaseReady = async () => {
   await pool.query(`
     CREATE INDEX IF NOT EXISTS bookings_worker_id_idx
     ON bookings(worker_id, created_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS bookings_user_id_idx
+    ON bookings(user_id, created_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS booking_messages_booking_id_idx
+    ON booking_messages(booking_id, created_at ASC);
   `);
 
   const countResult = await pool.query(`SELECT COUNT(*)::INTEGER AS count FROM workers;`);
@@ -520,7 +607,7 @@ export const createBooking = async ({
 
     memoryBookings.unshift(memoryBooking);
 
-    return memoryBooking;
+    return attachWorkerSnapshotToBooking(memoryBooking);
   }
 
   if (nextBooking.workerId) {
@@ -577,7 +664,8 @@ export const listBookingsForWorker = async (workerId) => {
   if (!pool) {
     return memoryBookings
       .filter((booking) => booking.workerId === workerId)
-      .sort((leftBooking, rightBooking) => rightBooking.createdAt - leftBooking.createdAt);
+      .sort((leftBooking, rightBooking) => rightBooking.createdAt - leftBooking.createdAt)
+      .map(attachWorkerSnapshotToBooking);
   }
 
   const result = await pool.query(
@@ -603,6 +691,143 @@ export const listBookingsForWorker = async (workerId) => {
   );
 
   return result.rows.map(normalizeBookingRow);
+};
+
+export const listBookingsForUser = async (userId) => {
+  if (!pool) {
+    return memoryBookings
+      .filter((booking) => booking.userId === userId)
+      .sort((leftBooking, rightBooking) => rightBooking.createdAt - leftBooking.createdAt)
+      .map(attachWorkerSnapshotToBooking);
+  }
+
+  const result = await pool.query(
+    `
+      SELECT
+        bookings.id,
+        bookings.worker_id,
+        bookings.user_id,
+        bookings.customer_name,
+        bookings.customer_phone,
+        bookings.customer_address,
+        bookings.service,
+        bookings.status,
+        bookings.latitude,
+        bookings.longitude,
+        bookings.created_at,
+        bookings.updated_at,
+        workers.name AS worker_name,
+        workers.phone AS worker_phone
+      FROM bookings
+      LEFT JOIN workers ON workers.id = bookings.worker_id
+      WHERE bookings.user_id = $1
+      ORDER BY bookings.created_at DESC;
+    `,
+    [userId]
+  );
+
+  return result.rows.map(normalizeBookingRow);
+};
+
+export const getBookingById = async (bookingId) => {
+  if (!pool) {
+    const booking = memoryBookings.find((currentBooking) => currentBooking.id === bookingId) || null;
+    return booking ? attachWorkerSnapshotToBooking(booking) : null;
+  }
+
+  const result = await pool.query(
+    `
+      SELECT
+        bookings.id,
+        bookings.worker_id,
+        bookings.user_id,
+        bookings.customer_name,
+        bookings.customer_phone,
+        bookings.customer_address,
+        bookings.service,
+        bookings.status,
+        bookings.latitude,
+        bookings.longitude,
+        bookings.created_at,
+        bookings.updated_at,
+        workers.name AS worker_name,
+        workers.phone AS worker_phone
+      FROM bookings
+      LEFT JOIN workers ON workers.id = bookings.worker_id
+      WHERE bookings.id = $1
+      LIMIT 1;
+    `,
+    [bookingId]
+  );
+
+  return result.rowCount > 0 ? normalizeBookingRow(result.rows[0]) : null;
+};
+
+export const listBookingMessages = async ({ bookingId, actorType, actorId }) => {
+  const booking = await getBookingById(bookingId);
+  const accessError = getBookingChatAccessError(booking, actorType, actorId);
+
+  if (accessError) {
+    throw new Error(accessError);
+  }
+
+  if (!pool) {
+    return memoryBookingMessages
+      .filter((message) => message.bookingId === bookingId)
+      .sort((leftMessage, rightMessage) => leftMessage.createdAt - rightMessage.createdAt);
+  }
+
+  const result = await pool.query(
+    `
+      SELECT id, booking_id, sender_type, sender_id, message, created_at
+      FROM booking_messages
+      WHERE booking_id = $1
+      ORDER BY created_at ASC;
+    `,
+    [bookingId]
+  );
+
+  return result.rows.map(normalizeBookingMessageRow);
+};
+
+export const createBookingMessage = async ({ bookingId, senderType, senderId, message }) => {
+  const trimmedMessage = message?.trim() || '';
+
+  if (!trimmedMessage) {
+    throw new Error('Message is required.');
+  }
+
+  const booking = await getBookingById(bookingId);
+  const accessError = getBookingChatAccessError(booking, senderType, senderId);
+
+  if (accessError) {
+    throw new Error(accessError);
+  }
+
+  if (!pool) {
+    const nextMessage = {
+      id: crypto.randomUUID(),
+      bookingId,
+      senderType,
+      senderId,
+      message: trimmedMessage,
+      createdAt: Date.now(),
+    };
+
+    memoryBookingMessages.push(nextMessage);
+    return nextMessage;
+  }
+
+  const result = await pool.query(
+    `
+      INSERT INTO booking_messages (id, booking_id, sender_type, sender_id, message)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, booking_id, sender_type, sender_id, message, created_at;
+    `,
+    [crypto.randomUUID(), bookingId, senderType, senderId, trimmedMessage]
+  );
+
+  return normalizeBookingMessageRow(result.rows[0]);
 };
 
 export const createWorkerAccount = async ({ email, password, workerProfile }) => {

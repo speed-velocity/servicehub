@@ -2344,6 +2344,86 @@ body::before {
   text-decoration: none;
 }
 
+.booking-chat-panel {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.9rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.booking-chat-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.booking-chat-title {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.booking-chat-copy {
+  margin-top: 0.2rem;
+  color: #94a3b8;
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.booking-chat-thread {
+  display: grid;
+  gap: 0.75rem;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.booking-chat-message {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.booking-chat-message.is-own {
+  border-color: rgba(74, 222, 128, 0.2);
+  background: rgba(22, 163, 74, 0.12);
+}
+
+.booking-chat-message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: #9ca3af;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.booking-chat-message-copy {
+  color: #e5e7eb;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.booking-chat-form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.booking-chat-submit {
+  width: 100%;
+}
+
+.booking-chat-empty {
+  min-height: 0;
+}
+
 .portal-auth-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
