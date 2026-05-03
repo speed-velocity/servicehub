@@ -252,6 +252,9 @@ const AuthHubPage = ({
   }, [sessionWorker]);
 
   const showWorkerSessionLoading = Boolean(workerSession) && workersLoading && !sessionWorker;
+  const hasSessionWorkspace =
+    (currentMode.type === 'user' && Boolean(userSession)) ||
+    (currentMode.type === 'worker' && Boolean(sessionWorker || showWorkerSessionLoading));
 
   const userRegisterPasswordHint = getPasswordHint(userRegisterForm.password, true);
   const userLoginPasswordHint = getPasswordHint(userLoginForm.password, false);
@@ -1100,28 +1103,30 @@ const AuthHubPage = ({
         </section>
       ) : null}
 
-      <section className="auth-experience-shell auth-experience-shell-split">
-        <aside className="auth-showcase-panel">
-          <div className="auth-showcase-sheen" />
-          <div className="auth-showcase-content">
-            <div className="auth-showcase-copyblock">
-              <p className="auth-showcase-kicker">ServX</p>
-              <h1 className="auth-showcase-title">{content.showcaseTitle}</h1>
-              <p className="auth-showcase-copy">{content.showcaseCopy}</p>
-            </div>
+      <section className={`auth-experience-shell auth-experience-shell-split${hasSessionWorkspace ? ' is-session-workspace' : ''}`}>
+        {!hasSessionWorkspace ? (
+          <aside className="auth-showcase-panel">
+            <div className="auth-showcase-sheen" />
+            <div className="auth-showcase-content">
+              <div className="auth-showcase-copyblock">
+                <p className="auth-showcase-kicker">ServX</p>
+                <h1 className="auth-showcase-title">{content.showcaseTitle}</h1>
+                <p className="auth-showcase-copy">{content.showcaseCopy}</p>
+              </div>
 
-            <div className="auth-showcase-card-grid auth-showcase-card-grid-compact">
-              {showcaseCards.map((card) => (
-                <article key={card.id} className="auth-showcase-mini-card">
-                  <p className="auth-showcase-mini-label">{card.label}</p>
-                  <h3 className="auth-showcase-mini-title">{card.title}</h3>
-                </article>
-              ))}
+              <div className="auth-showcase-card-grid auth-showcase-card-grid-compact">
+                {showcaseCards.map((card) => (
+                  <article key={card.id} className="auth-showcase-mini-card">
+                    <p className="auth-showcase-mini-label">{card.label}</p>
+                    <h3 className="auth-showcase-mini-title">{card.title}</h3>
+                  </article>
+                ))}
+              </div>
             </div>
-          </div>
-        </aside>
+          </aside>
+        ) : null}
 
-        <section className="auth-workspace auth-workspace-split">
+        <section className={`auth-workspace auth-workspace-split${hasSessionWorkspace ? ' is-session-workspace' : ''}`}>
           <div className="auth-workspace-ambient" />
           <div className="auth-workspace-inner">
             <div className="auth-switchboard auth-switchboard-split">

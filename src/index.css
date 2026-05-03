@@ -1808,6 +1808,12 @@ body::before {
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+.auth-experience-shell.is-session-workspace {
+  width: min(100%, 1240px);
+  grid-template-columns: 1fr;
+  min-height: auto;
+}
+
 .auth-experience-shell-split::before {
   content: '';
   position: absolute;
@@ -2026,6 +2032,11 @@ body::before {
   border-left: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.auth-workspace.is-session-workspace {
+  min-height: auto;
+  border-left: 0;
+}
+
 .auth-workspace-ambient {
   position: absolute;
   inset: 0;
@@ -2044,6 +2055,11 @@ body::before {
   gap: 1.35rem;
   min-height: 100%;
   padding: 2.6rem 2.4rem;
+}
+
+.auth-workspace.is-session-workspace .auth-workspace-inner {
+  gap: 1.75rem;
+  padding: 2.3rem 2.2rem 2.4rem;
 }
 
 .auth-switchboard-copy {
@@ -2317,14 +2333,14 @@ body::before {
 
 .worker-bookings-panel {
   display: grid;
-  gap: 1rem;
+  gap: 1.35rem;
 }
 
 .worker-bookings-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.2rem;
   flex-wrap: wrap;
 }
 
@@ -2343,11 +2359,12 @@ body::before {
 .worker-bookings-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1.2rem;
 }
 
 .worker-booking-card {
-  padding: 1.15rem;
+  min-width: 0;
+  padding: 1.35rem;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.045);
@@ -2362,6 +2379,18 @@ body::before {
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 0.95rem;
+}
+
+.worker-name,
+.worker-meta,
+.portal-page-title,
+.portal-panel-title,
+.profile-summary-label,
+.profile-summary-copy,
+.account-overview-email,
+.account-tab-chip {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .worker-booking-details {
@@ -2558,13 +2587,13 @@ body::before {
 
 .account-tab-strip {
   display: flex;
-  gap: 0.55rem;
-  padding: 0.35rem;
+  gap: 0.6rem;
+  padding: 0.42rem;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   width: 100%;
-  max-width: 540px;
+  max-width: 620px;
 }
 
 .account-tab-chip {
@@ -2573,6 +2602,7 @@ body::before {
   padding: 1rem 1.1rem;
   background: transparent;
   color: #a7b0c2;
+  font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
   transition: background 180ms ease, color 180ms ease;
@@ -2587,33 +2617,36 @@ body::before {
 
 .user-account-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.8fr);
+  gap: 1.7rem;
   align-items: stretch;
-  padding: 2rem;
+  padding: 2.15rem 0 0.2rem;
 }
 
 .user-account-hero-copy {
   display: grid;
-  gap: 0.9rem;
+  gap: 1rem;
   align-content: start;
+  min-width: 0;
 }
 
 .user-account-hero-copytext {
-  max-width: 720px;
-  font-size: 1rem;
-  line-height: 1.82;
+  max-width: 760px;
+  font-size: 1.02rem;
+  line-height: 1.86;
 }
 
 .user-account-hero-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.9rem;
+  gap: 1rem;
+  min-width: 0;
 }
 
 .user-account-hero-stat,
 .account-overview-card {
-  padding: 1.25rem;
+  min-width: 0;
+  padding: 1.35rem;
   border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
@@ -2646,8 +2679,8 @@ body::before {
 
 .account-overview-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.9fr);
+  gap: 1.2rem;
 }
 
 .account-overview-card-wide {
@@ -2675,7 +2708,7 @@ body::before {
 
 .profile-summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(220px, 1fr));
   gap: 1.2rem;
 }
 
@@ -2707,7 +2740,7 @@ body::before {
   color: #ffffff;
   font-size: clamp(1.05rem, 1.2vw, 1.35rem);
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.35;
   overflow-wrap: anywhere;
   word-break: break-word;
   max-width: 100%;
@@ -2737,6 +2770,7 @@ body::before {
   gap: 0.45rem;
   margin-bottom: 1rem;
   color: #cbd5e1;
+  min-width: 0;
 }
 
 .profile-booking-item-meta span {
@@ -2772,7 +2806,8 @@ body::before {
   .portal-form-grid,
   .profile-summary-grid,
   .account-overview-grid,
-  .user-account-hero {
+  .user-account-hero,
+  .auth-experience-shell.is-session-workspace {
     grid-template-columns: 1fr;
   }
 
@@ -2796,6 +2831,10 @@ body::before {
 
   .auth-experience-shell {
     min-height: auto;
+  }
+
+  .auth-workspace.is-session-workspace .auth-workspace-inner {
+    padding: 1.7rem 1.4rem 1.8rem;
   }
 
   .hero-content-shell,
