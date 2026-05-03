@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { memo, useRef, useState } from 'react';
 import ServiceCard from './ServiceCard';
 
 // SVG Icons
@@ -195,4 +195,4 @@ const ServicesSection = ({ isLocked = false, onServiceSelect }) => {
   );
 };
 
-export default ServicesSection;
+export default memo(ServicesSection);

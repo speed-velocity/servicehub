@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import ServicesSection from './components/ServicesSection';
@@ -12,7 +12,7 @@ import './index.css';
 import { serviceOptions } from './constants/services';
 import { reverseGeocodeLocation } from './services/geocoding';
 import { loginUserAccount, loginWorkerAccount, registerUserAccount, registerWorkerAccount } from './services/auth';
-import { assignWorkerToBooking, createBooking, getUserBookings, getWorkerBookings } from './services/bookings';
+import { assignWorkerToBooking, cancelBooking, createBooking, deleteBooking, getUserBookings, getWorkerBookings } from './services/bookings';
 import { listenToWorkers, toggleWorkerAvailability, updateWorkerLocation } from './services/workers';
 
 const emptyForm = {
@@ -162,6 +162,9 @@ function App() {
   const [userBookings, setUserBookings] = useState([]);
   const [userBookingsLoading, setUserBookingsLoading] = useState(false);
   const [userBookingsError, setUserBookingsError] = useState('');
+  const [bookingActionId, setBookingActionId] = useState('');
+  const [bookingActionType, setBookingActionType] = useState('');
+  const [bookingActionError, setBookingActionError] = useState('');
   const [workerBookings, setWorkerBookings] = useState([]);
   const [workerBookingsLoading, setWorkerBookingsLoading] = useState(false);
   const [workerBookingsError, setWorkerBookingsError] = useState('');
@@ -435,7 +438,11 @@ function App() {
     };
   }, [sessionWorker, workerSession]);
 
-  const openBooking = (service = '') => {
+  const navigateToSignup = useCallback(() => {
+    window.location.href = '/signup';
+  }, []);
+
+  const openBooking = useCallback((service = '') => {
     setBookingService(service);
     setBookingLocation(null);
     setShowBookingServiceSelect(!service);
@@ -444,14 +451,14 @@ function App() {
     setBookingError('');
     setBookingAssignmentError('');
     setIsBookingOpen(true);
-  };
+  }, []);
 
-  const redirectToBookingAuth = () => {
+  const redirectToBookingAuth = useCallback(() => {
     window.sessionStorage.setItem(authIntentStorageKey, 'booking');
     navigateToSignup();
-  };
+  }, [navigateToSignup]);
 
-  const closeBooking = () => {
+  const closeBooking = useCallback(() => {
     geocodeAbortControllerRef.current?.abort();
     geocodeAbortControllerRef.current = null;
     setIsBookingOpen(false);
@@ -462,16 +469,16 @@ function App() {
     setShowBookingServiceSelect(false);
     setBookingError('');
     setBookingAssignmentError('');
-  };
+  }, []);
 
-  const handleServiceSelect = (service) => {
+  const handleServiceSelect = useCallback((service) => {
     if (!hasUserSession) {
       redirectToBookingAuth();
       return;
     }
 
     openBooking(service);
-  };
+  }, [hasUserSession, openBooking, redirectToBookingAuth]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -630,6 +637,102 @@ function App() {
     }
   };
 
+  const handleCancelUserBooking = async (booking) => {
+    if (!booking?.id || !userSession?.id) {
+      return;
+    }
+
+    const shouldCancel = window.confirm('Cancel this booking? You can still delete it later from your profile.');
+
+    if (!shouldCancel) {
+      return;
+    }
+
+    setBookingActionId(booking.id);
+    setBookingActionType('cancel');
+    setBookingActionError('');
+
+    try {
+      const updatedBooking = await cancelBooking(booking.id, {
+        userId: userSession.id,
+      });
+
+      setUserBookings((currentBookings) =>
+        currentBookings.map((currentBooking) =>
+          currentBooking.id === updatedBooking.id
+            ? {
+                ...currentBooking,
+                ...updatedBooking,
+              }
+            : currentBooking
+        )
+      );
+
+      setWorkerBookings((currentBookings) =>
+        currentBookings.map((currentBooking) =>
+          currentBooking.id === updatedBooking.id
+            ? {
+                ...currentBooking,
+                ...updatedBooking,
+              }
+            : currentBooking
+        )
+      );
+
+      setConfirmedBooking((currentBooking) =>
+        currentBooking?.id === updatedBooking.id
+          ? {
+              ...currentBooking,
+              status: updatedBooking.status,
+              assignedWorkerId: updatedBooking.workerId,
+              assignedWorkerName: updatedBooking.workerName || currentBooking.assignedWorkerName || '',
+              assignedWorkerPhone: updatedBooking.workerPhone || currentBooking.assignedWorkerPhone || '',
+            }
+          : currentBooking
+      );
+    } catch (error) {
+      setBookingActionError(error.message || 'Unable to cancel this booking right now.');
+    } finally {
+      setBookingActionId('');
+      setBookingActionType('');
+    }
+  };
+
+  const handleDeleteUserBooking = async (booking) => {
+    if (!booking?.id || !userSession?.id) {
+      return;
+    }
+
+    const shouldDelete = window.confirm('Delete this booking permanently? This action cannot be undone.');
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    setBookingActionId(booking.id);
+    setBookingActionType('delete');
+    setBookingActionError('');
+
+    try {
+      await deleteBooking(booking.id, {
+        userId: userSession.id,
+      });
+
+      setUserBookings((currentBookings) =>
+        currentBookings.filter((currentBooking) => currentBooking.id !== booking.id)
+      );
+      setWorkerBookings((currentBookings) =>
+        currentBookings.filter((currentBooking) => currentBooking.id !== booking.id)
+      );
+      setConfirmedBooking((currentBooking) => (currentBooking?.id === booking.id ? null : currentBooking));
+    } catch (error) {
+      setBookingActionError(error.message || 'Unable to delete this booking right now.');
+    } finally {
+      setBookingActionId('');
+      setBookingActionType('');
+    }
+  };
+
   const handleMapLocationSelect = async ({ lat, lng, source = 'map' }) => {
     geocodeAbortControllerRef.current?.abort();
     const nextController = new AbortController();
@@ -685,12 +788,12 @@ function App() {
     }
   };
 
-  const handleExploreServices = () => {
+  const handleExploreServices = useCallback(() => {
     document.getElementById('services')?.scrollIntoView({
       behavior: 'smooth',
       block: 'start',
     });
-  };
+  }, []);
 
   const handleToggleWorkerAvailability = async (workerId, available) => {
     setWorkerActionId(workerId);
@@ -760,10 +863,6 @@ function App() {
     } finally {
       setIsLoggingInWorker(false);
     }
-  };
-
-  const navigateToSignup = () => {
-    window.location.href = '/signup';
   };
 
   const handleLogoutWorker = async (shouldRedirect = true) => {
@@ -851,6 +950,15 @@ function App() {
     navigateToSignup();
   };
 
+  const handleLandingBookNow = useCallback(() => {
+    if (!hasUserSession) {
+      redirectToBookingAuth();
+      return;
+    }
+
+    openBooking();
+  }, [hasUserSession, openBooking, redirectToBookingAuth]);
+
   if (route === '/worker/dashboard' && workerSession) {
     return (
       <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
@@ -910,6 +1018,9 @@ function App() {
           userBookings={userBookings}
           userBookingsLoading={userBookingsLoading}
           userBookingsError={userBookingsError}
+          bookingActionId={bookingActionId}
+          bookingActionError={bookingActionError}
+          bookingActionType={bookingActionType}
           locationShareState={locationShareState}
           onRegisterWorker={handleRegisterWorker}
           onLoginWorker={handleLoginWorker}
@@ -918,6 +1029,8 @@ function App() {
           onRegisterUser={handleRegisterUser}
           onLoginUser={handleLoginUser}
           onLogoutUser={handleLogoutUser}
+          onCancelBooking={handleCancelUserBooking}
+          onDeleteBooking={handleDeleteUserBooking}
         />
         <Footer />
       </div>
@@ -929,27 +1042,10 @@ function App() {
       <Header
         authActionLabel={hasActiveSession ? 'Logout' : 'Sign Up / Login'}
         onAuthAction={handleHeaderAuthAction}
-        onBookNow={() => {
-          if (!hasUserSession) {
-            redirectToBookingAuth();
-            return;
-          }
-
-          openBooking();
-        }}
+        onBookNow={handleLandingBookNow}
       />
       <main>
-        <Hero
-          onBookNow={() => {
-            if (!hasUserSession) {
-              redirectToBookingAuth();
-              return;
-            }
-
-            openBooking();
-          }}
-          onExploreServices={handleExploreServices}
-        />
+        <Hero onBookNow={handleLandingBookNow} onExploreServices={handleExploreServices} />
         <ServicesSection isLocked={!hasUserSession} onServiceSelect={handleServiceSelect} />
         <AboutSection />
       </main>

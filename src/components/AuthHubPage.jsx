@@ -3,6 +3,11 @@ import BookingChatPanel from './BookingChatPanel';
 import { serviceOptions } from '../constants/services';
 import WorkerSessionPanel from './WorkerSessionPanel';
 
+const bookingDateFormatter = new Intl.DateTimeFormat('en-IN', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+});
+
 const authModes = [
   { id: 'user-register', label: 'User Register', type: 'user' },
   { id: 'user-login', label: 'User Login', type: 'user' },
@@ -108,6 +113,27 @@ const getPasswordHint = (password, requiresStrongCheck) => {
   };
 };
 
+const getBookingStatusMeta = (status) => {
+  if (status === 'assigned') {
+    return {
+      className: 'available',
+      label: 'Assigned',
+    };
+  }
+
+  if (status === 'cancelled') {
+    return {
+      className: 'cancelled',
+      label: 'Cancelled',
+    };
+  }
+
+  return {
+    className: 'busy',
+    label: 'Pending',
+  };
+};
+
 const PasswordField = ({
   error,
   hint,
@@ -158,6 +184,9 @@ const AuthHubPage = ({
   userBookings,
   userBookingsLoading,
   userBookingsError,
+  bookingActionId,
+  bookingActionError,
+  bookingActionType,
   locationShareState,
   onRegisterWorker,
   onLoginWorker,
@@ -166,6 +195,8 @@ const AuthHubPage = ({
   onRegisterUser,
   onLoginUser,
   onLogoutUser,
+  onCancelBooking,
+  onDeleteBooking,
 }) => {
   const [activeMode, setActiveMode] = useState(initialMode);
   const [userRegisterForm, setUserRegisterForm] = useState(createUserForm);
@@ -177,6 +208,7 @@ const AuthHubPage = ({
   const [workerRegisterErrors, setWorkerRegisterErrors] = useState({});
   const [workerLoginErrors, setWorkerLoginErrors] = useState({});
   const [workerRegisterSuccess, setWorkerRegisterSuccess] = useState('');
+  const [activeUserTab, setActiveUserTab] = useState('bookings');
   const [visiblePasswords, setVisiblePasswords] = useState({
     userRegister: false,
     userLogin: false,
@@ -187,6 +219,12 @@ const AuthHubPage = ({
   useEffect(() => {
     setActiveMode(initialMode);
   }, [initialMode]);
+
+  useEffect(() => {
+    if (!userSession) {
+      setActiveUserTab('bookings');
+    }
+  }, [userSession]);
 
   const currentMode = useMemo(
     () => authModes.find((mode) => mode.id === activeMode) || authModes[0],
@@ -769,6 +807,10 @@ const AuthHubPage = ({
     }
 
     if (currentMode.type === 'user' && userSession) {
+      const assignedCount = userBookings.filter((booking) => booking.status === 'assigned').length;
+      const pendingCount = userBookings.filter((booking) => booking.status === 'pending').length;
+      const cancelledCount = userBookings.filter((booking) => booking.status === 'cancelled').length;
+
       return (
         <section className="portal-stack">
           <section className="portal-panel-card portal-stack auth-form-panel">
@@ -794,68 +836,188 @@ const AuthHubPage = ({
             <div className="worker-bookings-header">
               <div>
                 <div className="section-badge" style={{ marginBottom: '0.9rem' }}>
-                  My Bookings
+                  Account Workspace
                 </div>
-                <h2 className="portal-panel-title">Customer booking chats</h2>
+                <h2 className="portal-panel-title">Your bookings and profile</h2>
                 <p className="portal-inline-copy">
-                  Every booking created from your account appears here. Once a worker is assigned, you can chat directly.
+                  Review booking chats in one tab and manage cancellation or deletion from your profile tab.
                 </p>
               </div>
               <div className="worker-bookings-count">{userBookings.length} total</div>
             </div>
 
-            {userBookingsLoading ? (
-              <div className="workers-empty-state" style={{ marginBottom: 0 }}>
-                Loading your bookings...
-              </div>
+            <div className="account-tab-strip" role="tablist" aria-label="Account sections">
+              {[
+                { id: 'bookings', label: 'Bookings' },
+                { id: 'profile', label: 'Profile' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={`account-tab-chip${activeUserTab === tab.id ? ' is-active' : ''}`}
+                  onClick={() => setActiveUserTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {activeUserTab === 'bookings' ? (
+              <>
+                {userBookingsLoading ? (
+                  <div className="workers-empty-state" style={{ marginBottom: 0 }}>
+                    Loading your bookings...
+                  </div>
+                ) : null}
+
+                {!userBookingsLoading && userBookingsError ? (
+                  <div className="workers-feedback" role="alert" style={{ marginBottom: 0 }}>
+                    {userBookingsError}
+                  </div>
+                ) : null}
+
+                {!userBookingsLoading && !userBookingsError && userBookings.length === 0 ? (
+                  <div className="workers-empty-state" style={{ marginBottom: 0 }}>
+                    You have not created any bookings yet.
+                  </div>
+                ) : null}
+
+                {!userBookingsLoading && !userBookingsError && userBookings.length > 0 ? (
+                  <div className="worker-bookings-grid">
+                    {userBookings.map((booking) => {
+                      const bookingStatus = getBookingStatusMeta(booking.status);
+
+                      return (
+                        <article key={booking.id} className="worker-booking-card">
+                          <div className="worker-booking-card-top">
+                            <div>
+                              <p className="worker-name">{booking.workerName || 'Worker pending'}</p>
+                              <p className="worker-meta">{booking.service}</p>
+                            </div>
+                            <span className={`worker-status ${bookingStatus.className}`}>
+                              {bookingStatus.label}
+                            </span>
+                          </div>
+
+                          <div className="worker-booking-details">
+                            <p>
+                              <span>Worker Phone:</span>{' '}
+                              {booking.workerPhone ? (
+                                <a href={`tel:${booking.workerPhone.replace(/\s+/g, '')}`}>{booking.workerPhone}</a>
+                              ) : (
+                                'Will appear after assignment'
+                              )}
+                            </p>
+                            <p>
+                              <span>Address:</span> {booking.customerAddress}
+                            </p>
+                            <p>
+                              <span>Customer Name:</span> {booking.customerName}
+                            </p>
+                            <p>
+                              <span>Booked At:</span> {bookingDateFormatter.format(new Date(booking.createdAt))}
+                            </p>
+                          </div>
+
+                          <BookingChatPanel booking={booking} viewerType="user" viewerId={userSession.id} />
+                        </article>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </>
             ) : null}
 
-            {!userBookingsLoading && userBookingsError ? (
-              <div className="workers-feedback" role="alert" style={{ marginBottom: 0 }}>
-                {userBookingsError}
-              </div>
-            ) : null}
-
-            {!userBookingsLoading && !userBookingsError && userBookings.length === 0 ? (
-              <div className="workers-empty-state" style={{ marginBottom: 0 }}>
-                You have not created any bookings yet.
-              </div>
-            ) : null}
-
-            {!userBookingsLoading && !userBookingsError && userBookings.length > 0 ? (
-              <div className="worker-bookings-grid">
-                {userBookings.map((booking) => (
-                  <article key={booking.id} className="worker-booking-card">
-                    <div className="worker-booking-card-top">
-                      <div>
-                        <p className="worker-name">{booking.workerName || 'Worker pending'}</p>
-                        <p className="worker-meta">{booking.service}</p>
-                      </div>
-                      <span className={`worker-status ${booking.status === 'assigned' ? 'available' : 'busy'}`}>
-                        {booking.status === 'assigned' ? 'Assigned' : 'Pending'}
-                      </span>
-                    </div>
-
-                    <div className="worker-booking-details">
-                      <p>
-                        <span>Worker Phone:</span>{' '}
-                        {booking.workerPhone ? (
-                          <a href={`tel:${booking.workerPhone.replace(/\s+/g, '')}`}>{booking.workerPhone}</a>
-                        ) : (
-                          'Will appear after assignment'
-                        )}
-                      </p>
-                      <p>
-                        <span>Address:</span> {booking.customerAddress}
-                      </p>
-                      <p>
-                        <span>Customer Name:</span> {booking.customerName}
-                      </p>
-                    </div>
-
-                    <BookingChatPanel booking={booking} viewerType="user" viewerId={userSession.id} />
+            {activeUserTab === 'profile' ? (
+              <div className="profile-workspace">
+                <section className="profile-summary-grid">
+                  <article className="profile-summary-card">
+                    <p className="profile-summary-label">Account Email</p>
+                    <h3 className="profile-summary-value">{userSession.email}</h3>
+                    <p className="profile-summary-copy">Use this profile space to manage booking lifecycle actions safely.</p>
                   </article>
-                ))}
+                  <article className="profile-summary-card">
+                    <p className="profile-summary-label">Assigned</p>
+                    <h3 className="profile-summary-value">{assignedCount}</h3>
+                    <p className="profile-summary-copy">Bookings already connected to a worker.</p>
+                  </article>
+                  <article className="profile-summary-card">
+                    <p className="profile-summary-label">Pending / Cancelled</p>
+                    <h3 className="profile-summary-value">{pendingCount} / {cancelledCount}</h3>
+                    <p className="profile-summary-copy">Cancel when plans change, then delete if you no longer need the record.</p>
+                  </article>
+                </section>
+
+                {bookingActionError ? (
+                  <div className="workers-feedback" role="alert" style={{ marginBottom: 0 }}>
+                    {bookingActionError}
+                  </div>
+                ) : null}
+
+                {userBookingsLoading ? (
+                  <div className="workers-empty-state" style={{ marginBottom: 0 }}>
+                    Loading your profile actions...
+                  </div>
+                ) : null}
+
+                {!userBookingsLoading && !userBookingsError && userBookings.length === 0 ? (
+                  <div className="workers-empty-state" style={{ marginBottom: 0 }}>
+                    You do not have any bookings to manage yet.
+                  </div>
+                ) : null}
+
+                {!userBookingsLoading && userBookingsError ? (
+                  <div className="workers-feedback" role="alert" style={{ marginBottom: 0 }}>
+                    {userBookingsError}
+                  </div>
+                ) : null}
+
+                {!userBookingsLoading && !userBookingsError && userBookings.length > 0 ? (
+                  <div className="profile-booking-list">
+                    {userBookings.map((booking) => {
+                      const bookingStatus = getBookingStatusMeta(booking.status);
+                      const isActionPending = bookingActionId === booking.id;
+
+                      return (
+                        <article key={booking.id} className="profile-booking-item">
+                          <div className="profile-booking-item-top">
+                            <div>
+                              <p className="worker-name">{booking.service}</p>
+                              <p className="worker-meta">{booking.workerName || 'Worker not selected yet'}</p>
+                            </div>
+                            <span className={`worker-status ${bookingStatus.className}`}>
+                              {bookingStatus.label}
+                            </span>
+                          </div>
+
+                          <div className="profile-booking-item-meta">
+                            <p><span>Address:</span> {booking.customerAddress}</p>
+                            <p><span>Booked:</span> {bookingDateFormatter.format(new Date(booking.createdAt))}</p>
+                          </div>
+
+                          <div className="portal-account-actions">
+                            <button
+                              type="button"
+                              className="btn-outline profile-action-btn"
+                              disabled={isActionPending || booking.status === 'cancelled'}
+                              onClick={() => onCancelBooking(booking)}
+                            >
+                              {isActionPending && bookingActionType === 'cancel' ? 'Updating...' : 'Cancel Booking'}
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-outline profile-action-btn profile-action-btn-danger"
+                              disabled={isActionPending}
+                              onClick={() => onDeleteBooking(booking)}
+                            >
+                              {isActionPending && bookingActionType === 'delete' ? 'Deleting...' : 'Delete Booking'}
+                            </button>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </section>

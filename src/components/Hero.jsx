@@ -1,4 +1,4 @@
-import React, { startTransition, useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 
 const heroStats = [
   { value: '500+', label: 'Verified Pros' },
@@ -10,67 +10,14 @@ const heroServiceWords = ['electricians', 'plumbers', 'cleaners', 'painters'];
 
 const Hero = ({ onBookNow, onExploreServices }) => {
   const [activeWordIndex, setActiveWordIndex] = useState(0);
-  const [typedWord, setTypedWord] = useState('');
-  const [isDeletingWord, setIsDeletingWord] = useState(false);
-  const [displayedStats, setDisplayedStats] = useState(heroStats);
-  const [isShufflingStats, setIsShufflingStats] = useState(false);
 
   useEffect(() => {
-    const currentWord = heroServiceWords[activeWordIndex];
-    let timeoutId;
-
-    if (!isDeletingWord && typedWord === currentWord) {
-      timeoutId = window.setTimeout(() => {
-        setIsDeletingWord(true);
-      }, 1100);
-    } else if (isDeletingWord && typedWord.length === 0) {
-      timeoutId = window.setTimeout(() => {
-        setIsDeletingWord(false);
-        setActiveWordIndex((activeWordIndex + 1) % heroServiceWords.length);
-      }, 180);
-    } else {
-      timeoutId = window.setTimeout(() => {
-        const nextWordSlice = isDeletingWord
-          ? currentWord.slice(0, Math.max(typedWord.length - 1, 0))
-          : currentWord.slice(0, typedWord.length + 1);
-
-        setTypedWord(nextWordSlice);
-      }, isDeletingWord ? 48 : 92);
-    }
+    const intervalId = window.setInterval(() => {
+      setActiveWordIndex((currentIndex) => (currentIndex + 1) % heroServiceWords.length);
+    }, 2400);
 
     return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [activeWordIndex, isDeletingWord, typedWord]);
-
-  useEffect(() => {
-    let shuffleSwapTimeoutId;
-    let shuffleResetTimeoutId;
-
-    const shuffleStats = () => {
-      setIsShufflingStats(true);
-
-      shuffleSwapTimeoutId = window.setTimeout(() => {
-        startTransition(() => {
-          setDisplayedStats((currentStats) => {
-            const [firstStat, ...restStats] = currentStats;
-
-            return [...restStats, firstStat];
-          });
-        });
-      }, 280);
-
-      shuffleResetTimeoutId = window.setTimeout(() => {
-        setIsShufflingStats(false);
-      }, 820);
-    };
-
-    const shuffleIntervalId = window.setInterval(shuffleStats, 4200);
-
-    return () => {
-      window.clearInterval(shuffleIntervalId);
-      window.clearTimeout(shuffleSwapTimeoutId);
-      window.clearTimeout(shuffleResetTimeoutId);
+      window.clearInterval(intervalId);
     };
   }, []);
 
@@ -127,8 +74,8 @@ const Hero = ({ onBookNow, onExploreServices }) => {
         <div className="hero-render-copy" style={{ margin: '0 auto 2.5rem' }}>
           <span className="hero-render-line">Find verified</span>
           <span className="hero-render-line hero-render-line-dynamic">
-            <span className={`hero-typeword ${isDeletingWord ? 'is-deleting' : ''}`}>
-              {typedWord || '\u00A0'}
+            <span key={heroServiceWords[activeWordIndex]} className="hero-typeword">
+              {heroServiceWords[activeWordIndex]}
             </span>
           </span>
           <span className="hero-render-line">near you.</span>
@@ -171,14 +118,14 @@ const Hero = ({ onBookNow, onExploreServices }) => {
             flexWrap: 'wrap',
           }}
         >
-          {displayedStats.map((stat, index) => {
-            const isEdgeCard = index === 0 || index === displayedStats.length - 1;
+          {heroStats.map((stat, index) => {
+            const isEdgeCard = index === 0 || index === heroStats.length - 1;
 
             return (
               <div
                 key={stat.label}
-                className={`hero-stat-card ${isEdgeCard ? 'hero-stat-card-edge' : 'hero-stat-card-center'} ${isShufflingStats ? 'is-shuffling' : ''}`}
-                style={{ textAlign: 'center', '--hero-shuffle-delay': `${index * 90}ms` }}
+                className={`hero-stat-card ${isEdgeCard ? 'hero-stat-card-edge' : 'hero-stat-card-center'}`}
+                style={{ textAlign: 'center' }}
               >
                 <div className="hero-stat-card-body">
                   <div
@@ -206,4 +153,4 @@ const Hero = ({ onBookNow, onExploreServices }) => {
   );
 };
 
-export default Hero;
+export default memo(Hero);

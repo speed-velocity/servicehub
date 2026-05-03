@@ -7,6 +7,27 @@ const bookingDateFormatter = new Intl.DateTimeFormat('en-IN', {
   timeStyle: 'short',
 });
 
+const getBookingStatusMeta = (status) => {
+  if (status === 'assigned') {
+    return {
+      className: 'available',
+      label: 'Assigned',
+    };
+  }
+
+  if (status === 'cancelled') {
+    return {
+      className: 'cancelled',
+      label: 'Cancelled',
+    };
+  }
+
+  return {
+    className: 'busy',
+    label: 'Pending',
+  };
+};
+
 const WorkerDashboardPage = ({
   workerSession,
   sessionWorker,
@@ -24,10 +45,12 @@ const WorkerDashboardPage = ({
       return [];
     }
 
+    const assignedCount = bookings.filter((booking) => booking.status === 'assigned').length;
+
     return [
       {
         label: 'Assigned Customers',
-        value: bookings.length,
+        value: assignedCount,
       },
       {
         label: 'Current Status',
@@ -38,7 +61,7 @@ const WorkerDashboardPage = ({
         value: sessionWorker.service,
       },
     ];
-  }, [bookings.length, sessionWorker]);
+  }, [bookings, sessionWorker]);
 
   if (workersLoading && !sessionWorker) {
     return (
@@ -127,34 +150,38 @@ const WorkerDashboardPage = ({
 
         {!bookingsLoading && !bookingsError && bookings.length > 0 ? (
           <div className="worker-bookings-grid">
-            {bookings.map((booking) => (
-              <article key={booking.id} className="worker-booking-card">
-                <div className="worker-booking-card-top">
-                  <div>
-                    <p className="worker-name">{booking.customerName}</p>
-                    <p className="worker-meta">{booking.service}</p>
+            {bookings.map((booking) => {
+              const bookingStatus = getBookingStatusMeta(booking.status);
+
+              return (
+                <article key={booking.id} className="worker-booking-card">
+                  <div className="worker-booking-card-top">
+                    <div>
+                      <p className="worker-name">{booking.customerName}</p>
+                      <p className="worker-meta">{booking.service}</p>
+                    </div>
+                    <span className={`worker-status ${bookingStatus.className}`}>
+                      {bookingStatus.label}
+                    </span>
                   </div>
-                  <span className={`worker-status ${booking.status === 'assigned' ? 'available' : 'busy'}`}>
-                    {booking.status === 'assigned' ? 'Assigned' : 'Pending'}
-                  </span>
-                </div>
 
-                <div className="worker-booking-details">
-                  <p>
-                    <span>Phone:</span>{' '}
-                    <a href={`tel:${booking.customerPhone.replace(/\s+/g, '')}`}>{booking.customerPhone}</a>
-                  </p>
-                  <p>
-                    <span>Address:</span> {booking.customerAddress}
-                  </p>
-                  <p>
-                    <span>Booked At:</span> {bookingDateFormatter.format(new Date(booking.createdAt))}
-                  </p>
-                </div>
+                  <div className="worker-booking-details">
+                    <p>
+                      <span>Phone:</span>{' '}
+                      <a href={`tel:${booking.customerPhone.replace(/\s+/g, '')}`}>{booking.customerPhone}</a>
+                    </p>
+                    <p>
+                      <span>Address:</span> {booking.customerAddress}
+                    </p>
+                    <p>
+                      <span>Booked At:</span> {bookingDateFormatter.format(new Date(booking.createdAt))}
+                    </p>
+                  </div>
 
-                <BookingChatPanel booking={booking} viewerType="worker" viewerId={sessionWorker.id} />
-              </article>
-            ))}
+                  <BookingChatPanel booking={booking} viewerType="worker" viewerId={sessionWorker.id} />
+                </article>
+              );
+            })}
           </div>
         ) : null}
       </section>

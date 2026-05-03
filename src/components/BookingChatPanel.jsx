@@ -7,6 +7,7 @@ const messageDateFormatter = new Intl.DateTimeFormat('en-IN', {
 });
 
 const BookingChatPanel = ({ booking, viewerType, viewerId }) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(true);
@@ -27,8 +28,12 @@ const BookingChatPanel = ({ booking, viewerType, viewerId }) => {
       return 'Chat will open once a worker is assigned to this booking.';
     }
 
+    if (booking?.status === 'cancelled') {
+      return 'Chat is unavailable because this booking was cancelled.';
+    }
+
     return '';
-  }, [booking?.userId, booking?.workerId, viewerId]);
+  }, [booking?.status, booking?.userId, booking?.workerId, viewerId]);
 
   useEffect(() => {
     if (!messages.length) {
@@ -39,6 +44,11 @@ const BookingChatPanel = ({ booking, viewerType, viewerId }) => {
   }, [messages]);
 
   useEffect(() => {
+    if (!isOpen) {
+      setLoading(false);
+      return undefined;
+    }
+
     if (disabledReason) {
       setMessages([]);
       setLoading(false);
@@ -84,7 +94,7 @@ const BookingChatPanel = ({ booking, viewerType, viewerId }) => {
       isActive = false;
       window.clearInterval(pollId);
     };
-  }, [booking.id, disabledReason, viewerId, viewerType]);
+  }, [booking.id, disabledReason, isOpen, viewerId, viewerType]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -137,27 +147,36 @@ const BookingChatPanel = ({ booking, viewerType, viewerId }) => {
               : 'Message the worker assigned to this booking.'}
           </p>
         </div>
+        <button type="button" className="btn-outline booking-chat-toggle" onClick={() => setIsOpen((currentState) => !currentState)}>
+          {isOpen ? 'Hide Chat' : 'Open Chat'}
+        </button>
       </div>
 
-      {disabledReason ? (
+      {!isOpen ? (
+        <div className="workers-empty-state booking-chat-empty" style={{ marginBottom: 0 }}>
+          Open chat only when you need it for a smoother dashboard.
+        </div>
+      ) : null}
+
+      {isOpen && disabledReason ? (
         <div className="workers-empty-state booking-chat-empty" style={{ marginBottom: 0 }}>
           {disabledReason}
         </div>
       ) : null}
 
-      {!disabledReason && loading ? (
+      {isOpen && !disabledReason && loading ? (
         <div className="workers-empty-state booking-chat-empty" style={{ marginBottom: 0 }}>
           Loading chat...
         </div>
       ) : null}
 
-      {!disabledReason && !loading && error ? (
+      {isOpen && !disabledReason && !loading && error ? (
         <div className="workers-feedback" role="alert" style={{ marginBottom: 0 }}>
           {error}
         </div>
       ) : null}
 
-      {!disabledReason && !loading && !error ? (
+      {isOpen && !disabledReason && !loading && !error ? (
         <>
           <div className="booking-chat-thread">
             {messages.length > 0 ? (

@@ -12,6 +12,8 @@ import {
   createWorkerAccount,
   createWorker,
   assignWorkerToBooking,
+  cancelBookingForUser,
+  deleteBookingForUser,
   ensureDatabaseReady,
   findWorkerByPhone,
   listBookingMessages,
@@ -486,6 +488,64 @@ app.patch('/api/bookings/:bookingId/worker', async (request, response) => {
   }
 });
 
+app.patch('/api/bookings/:bookingId/cancel', async (request, response) => {
+  const userId = request.body.userId;
+
+  if (!userId?.trim()) {
+    response.status(400).json({ error: 'User id is required.' });
+    return;
+  }
+
+  try {
+    const booking = await cancelBookingForUser({
+      bookingId: request.params.bookingId,
+      userId,
+    });
+
+    response.json(booking);
+  } catch (error) {
+    const status =
+      error.message === 'Booking not found.'
+        ? 404
+        : error.message === 'You cannot update this booking.'
+          ? 403
+          : error.message === 'Booking id is required.' || error.message === 'User id is required.'
+            ? 400
+            : 500;
+
+    response.status(status).json({ error: error.message || 'Unable to cancel the booking right now.' });
+  }
+});
+
+app.delete('/api/bookings/:bookingId', async (request, response) => {
+  const userId = request.query.userId;
+
+  if (!userId?.trim()) {
+    response.status(400).json({ error: 'User id is required.' });
+    return;
+  }
+
+  try {
+    await deleteBookingForUser({
+      bookingId: request.params.bookingId,
+      userId: String(userId),
+    });
+
+    response.json({ ok: true });
+  } catch (error) {
+    const status =
+      error.message === 'Booking not found.'
+        ? 404
+        : error.message === 'You cannot update this booking.'
+          ? 403
+          : error.message === 'Booking id is required.' || error.message === 'User id is required.'
+            ? 400
+            : 500;
+
+    response.status(status).json({ error: error.message || 'Unable to delete the booking right now.' });
+  }
+});
+
 app.get('/api/workers/:workerId/bookings', async (request, response) => {
   try {
     const bookings = await listBookingsForWorker(request.params.workerId);
@@ -529,6 +589,8 @@ app.get('/api/bookings/:bookingId/messages', async (request, response) => {
         ? 404
         : error.message === 'No worker is assigned to this booking yet.'
           ? 409
+          : error.message === 'This booking has been cancelled.'
+            ? 409
           : error.message === 'This booking is not linked to a user account.'
             ? 409
             : error.message === 'Invalid actor type.' || error.message === 'Actor id is required.'
@@ -566,6 +628,8 @@ app.post('/api/bookings/:bookingId/messages', async (request, response) => {
           ? 404
           : error.message === 'No worker is assigned to this booking yet.'
             ? 409
+            : error.message === 'This booking has been cancelled.'
+              ? 409
             : error.message === 'This booking is not linked to a user account.'
               ? 409
               : error.message === 'Invalid actor type.' || error.message === 'Actor id is required.'

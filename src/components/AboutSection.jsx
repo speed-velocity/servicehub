@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 const aboutHighlights = [
   {
@@ -106,4 +106,4 @@ const AboutSection = () => {
   );
 };
 
-export default AboutSection;
+export default memo(AboutSection);

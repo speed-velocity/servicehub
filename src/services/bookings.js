@@ -39,6 +39,32 @@ export const assignWorkerToBooking = async (bookingId, { userId, workerId }) => 
   return parseJsonResponse(response);
 };
 
+export const cancelBooking = async (bookingId, { userId }) => {
+  const response = await fetch(getApiUrl(`/api/bookings/${bookingId}/cancel`), {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      userId,
+    }),
+  });
+
+  return parseJsonResponse(response);
+};
+
+export const deleteBooking = async (bookingId, { userId }) => {
+  const searchParams = new URLSearchParams({
+    userId,
+  });
+
+  const response = await fetch(getApiUrl(`/api/bookings/${bookingId}?${searchParams.toString()}`), {
+    method: 'DELETE',
+  });
+
+  return parseJsonResponse(response);
+};
+
 export const getWorkerBookings = async (workerId) => {
   const response = await fetch(getApiUrl(`/api/workers/${workerId}/bookings`));
   const payload = await parseJsonResponse(response);

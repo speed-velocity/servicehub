@@ -192,6 +192,40 @@ const normalizeBookingMessageRow = (row) => ({
   createdAt: row.created_at ? new Date(row.created_at).getTime() : row.createdAt || 0,
 });
 
+const getBookingSnapshotById = async (bookingId) => {
+  if (!pool) {
+    const booking = memoryBookings.find((currentBooking) => currentBooking.id === bookingId) || null;
+    return booking ? attachWorkerSnapshotToBooking(booking) : null;
+  }
+
+  const result = await pool.query(
+    `
+      SELECT
+        bookings.id,
+        bookings.worker_id,
+        bookings.user_id,
+        bookings.customer_name,
+        bookings.customer_phone,
+        bookings.customer_address,
+        bookings.service,
+        bookings.status,
+        bookings.latitude,
+        bookings.longitude,
+        bookings.created_at,
+        bookings.updated_at,
+        workers.name AS worker_name,
+        workers.phone AS worker_phone
+      FROM bookings
+      LEFT JOIN workers ON workers.id = bookings.worker_id
+      WHERE bookings.id = $1
+      LIMIT 1;
+    `,
+    [bookingId]
+  );
+
+  return result.rowCount > 0 ? normalizeBookingRow(result.rows[0]) : null;
+};
+
 const attachWorkerSnapshotToBooking = (booking) => {
   if (!booking?.workerId) {
     return {
@@ -213,6 +247,10 @@ const attachWorkerSnapshotToBooking = (booking) => {
 const getBookingChatAccessError = (booking, actorType, actorId) => {
   if (!booking) {
     return 'Booking not found.';
+  }
+
+  if (booking.status === 'cancelled') {
+    return 'This booking has been cancelled.';
   }
 
   if (!actorId?.trim()) {
@@ -768,6 +806,115 @@ export const assignWorkerToBooking = async ({ bookingId, userId, workerId }) => 
   return getBookingById(result.rows[0].id);
 };
 
+export const cancelBookingForUser = async ({ bookingId, userId }) => {
+  const nextBookingId = bookingId?.trim() || '';
+  const nextUserId = userId?.trim() || '';
+
+  if (!nextBookingId) {
+    throw new Error('Booking id is required.');
+  }
+
+  if (!nextUserId) {
+    throw new Error('User id is required.');
+  }
+
+  if (!pool) {
+    const booking = memoryBookings.find((currentBooking) => currentBooking.id === nextBookingId) || null;
+
+    if (!booking) {
+      throw new Error('Booking not found.');
+    }
+
+    if (!booking.userId || booking.userId !== nextUserId) {
+      throw new Error('You cannot update this booking.');
+    }
+
+    booking.status = 'cancelled';
+    booking.updatedAt = Date.now();
+
+    return attachWorkerSnapshotToBooking(booking);
+  }
+
+  const booking = await getBookingSnapshotById(nextBookingId);
+
+  if (!booking) {
+    throw new Error('Booking not found.');
+  }
+
+  if (!booking.userId || booking.userId !== nextUserId) {
+    throw new Error('You cannot update this booking.');
+  }
+
+  await pool.query(
+    `
+      UPDATE bookings
+      SET status = 'cancelled',
+          updated_at = NOW()
+      WHERE id = $1;
+    `,
+    [nextBookingId]
+  );
+
+  return getBookingSnapshotById(nextBookingId);
+};
+
+export const deleteBookingForUser = async ({ bookingId, userId }) => {
+  const nextBookingId = bookingId?.trim() || '';
+  const nextUserId = userId?.trim() || '';
+
+  if (!nextBookingId) {
+    throw new Error('Booking id is required.');
+  }
+
+  if (!nextUserId) {
+    throw new Error('User id is required.');
+  }
+
+  if (!pool) {
+    const bookingIndex = memoryBookings.findIndex((currentBooking) => currentBooking.id === nextBookingId);
+
+    if (bookingIndex === -1) {
+      throw new Error('Booking not found.');
+    }
+
+    const booking = memoryBookings[bookingIndex];
+
+    if (!booking.userId || booking.userId !== nextUserId) {
+      throw new Error('You cannot update this booking.');
+    }
+
+    memoryBookings.splice(bookingIndex, 1);
+
+    for (let messageIndex = memoryBookingMessages.length - 1; messageIndex >= 0; messageIndex -= 1) {
+      if (memoryBookingMessages[messageIndex].bookingId === nextBookingId) {
+        memoryBookingMessages.splice(messageIndex, 1);
+      }
+    }
+
+    return { ok: true };
+  }
+
+  const booking = await getBookingSnapshotById(nextBookingId);
+
+  if (!booking) {
+    throw new Error('Booking not found.');
+  }
+
+  if (!booking.userId || booking.userId !== nextUserId) {
+    throw new Error('You cannot update this booking.');
+  }
+
+  await pool.query(
+    `
+      DELETE FROM bookings
+      WHERE id = $1;
+    `,
+    [nextBookingId]
+  );
+
+  return { ok: true };
+};
+
 export const listBookingsForWorker = async (workerId) => {
   if (!pool) {
     return memoryBookings
@@ -838,37 +985,7 @@ export const listBookingsForUser = async (userId) => {
 };
 
 export const getBookingById = async (bookingId) => {
-  if (!pool) {
-    const booking = memoryBookings.find((currentBooking) => currentBooking.id === bookingId) || null;
-    return booking ? attachWorkerSnapshotToBooking(booking) : null;
-  }
-
-  const result = await pool.query(
-    `
-      SELECT
-        bookings.id,
-        bookings.worker_id,
-        bookings.user_id,
-        bookings.customer_name,
-        bookings.customer_phone,
-        bookings.customer_address,
-        bookings.service,
-        bookings.status,
-        bookings.latitude,
-        bookings.longitude,
-        bookings.created_at,
-        bookings.updated_at,
-        workers.name AS worker_name,
-        workers.phone AS worker_phone
-      FROM bookings
-      LEFT JOIN workers ON workers.id = bookings.worker_id
-      WHERE bookings.id = $1
-      LIMIT 1;
-    `,
-    [bookingId]
-  );
-
-  return result.rowCount > 0 ? normalizeBookingRow(result.rows[0]) : null;
+  return getBookingSnapshotById(bookingId);
 };
 
 export const listBookingMessages = async ({ bookingId, actorType, actorId }) => {
