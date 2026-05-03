@@ -954,6 +954,17 @@ function App() {
     navigateToSignup();
   };
 
+  const handleHeaderAccountAction = useCallback(() => {
+    if (workerSession) {
+      window.location.href = '/worker/dashboard';
+      return;
+    }
+
+    if (userSession) {
+      window.location.href = '/account';
+    }
+  }, [userSession, workerSession]);
+
   const handleLandingBookNow = useCallback(() => {
     if (!hasUserSession) {
       redirectToBookingAuth();
@@ -1045,6 +1056,8 @@ function App() {
     <div style={{ backgroundColor: '#0B0B0B', minHeight: '100vh', color: '#ffffff' }}>
       <Header
         authActionLabel={hasActiveSession ? 'Logout' : 'Sign Up / Login'}
+        accountActionLabel={workerSession ? 'Dashboard' : userSession ? 'My Account' : ''}
+        onAccountAction={handleHeaderAccountAction}
         onAuthAction={handleHeaderAuthAction}
         onBookNow={handleLandingBookNow}
       />
