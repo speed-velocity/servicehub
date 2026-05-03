@@ -39,10 +39,15 @@ npm run dev
 
 ## Render deployment
 
-This repo includes [render.yaml](/C:/Users/win11/.gemini/antigravity/scratch/render.yaml) for deploying:
+This repo includes [render.yaml](./render.yaml) for deploying:
 
 - one Node web service
 - one Postgres database
 
-For production, Render should provide `DATABASE_URL` automatically from the linked Postgres instance.
-Add `GEOAPIFY_API_KEY` and `VITE_GEOAPIFY_API_KEY` in the service environment as well so Leaflet tiles and reverse geocoding use Geoapify.
+For production:
+
+- Render provides `DATABASE_URL` automatically from the linked Postgres instance.
+- The Blueprint prompts for `GEOAPIFY_API_KEY` and `VITE_GEOAPIFY_API_KEY` during the initial Blueprint creation flow.
+- The service health check runs against `/api/health`.
+
+If you deploy on Render's free tier, note that free Postgres expires after 30 days according to Render's current docs.
