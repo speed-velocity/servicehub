@@ -838,6 +838,8 @@ body::before {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   transition: opacity 250ms ease, visibility 250ms ease;
   z-index: 200;
 }
@@ -851,6 +853,7 @@ body::before {
 .booking-modal {
   position: relative;
   width: min(100%, 520px);
+  max-height: calc(100dvh - 3rem);
   background: linear-gradient(180deg, rgba(17, 25, 40, 0.72), rgba(11, 11, 11, 0.78));
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 22px;
@@ -861,7 +864,8 @@ body::before {
   transition: transform 250ms ease, opacity 250ms ease;
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .booking-modal::after,
@@ -1520,6 +1524,12 @@ body::before {
   .booking-modal {
     padding: 1.35rem;
     border-radius: 18px;
+    max-height: calc(100dvh - 2rem);
+  }
+
+  .booking-modal-overlay {
+    align-items: flex-start;
+    padding: 1rem;
   }
 
   .worker-registration-form {
