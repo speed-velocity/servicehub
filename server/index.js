@@ -11,6 +11,7 @@ import {
   createUserAccount,
   createWorkerAccount,
   createWorker,
+  assignWorkerToBooking,
   ensureDatabaseReady,
   findWorkerByPhone,
   listBookingMessages,
@@ -443,6 +444,45 @@ app.post('/api/bookings', async (request, response) => {
   } catch (error) {
     const status = error.message === 'Worker not found.' ? 404 : 500;
     response.status(status).json({ error: error.message || 'Unable to create booking right now.' });
+  }
+});
+
+app.patch('/api/bookings/:bookingId/worker', async (request, response) => {
+  const userId = request.body.userId;
+  const workerId = request.body.workerId;
+
+  if (!userId?.trim() || !workerId?.trim()) {
+    response.status(400).json({ error: 'User id and worker id are required.' });
+    return;
+  }
+
+  try {
+    const booking = await assignWorkerToBooking({
+      bookingId: request.params.bookingId,
+      userId,
+      workerId,
+    });
+
+    response.json(booking);
+  } catch (error) {
+    const status =
+      error.message === 'Booking not found.'
+        ? 404
+        : error.message === 'Worker not found.'
+          ? 404
+          : error.message === 'You cannot update this booking.'
+            ? 403
+            : error.message === 'Selected worker is not available right now.'
+              ? 409
+              : error.message === 'Selected worker does not match this service.'
+                ? 409
+                : error.message === 'Booking id is required.' ||
+                    error.message === 'User id is required.' ||
+                    error.message === 'Worker id is required.'
+                  ? 400
+                  : 500;
+
+    response.status(status).json({ error: error.message || 'Unable to assign the worker right now.' });
   }
 });
 

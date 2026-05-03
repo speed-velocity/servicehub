@@ -12,7 +12,7 @@ import './index.css';
 import { serviceOptions } from './constants/services';
 import { reverseGeocodeLocation } from './services/geocoding';
 import { loginUserAccount, loginWorkerAccount, registerUserAccount, registerWorkerAccount } from './services/auth';
-import { createBooking, getUserBookings, getWorkerBookings } from './services/bookings';
+import { assignWorkerToBooking, createBooking, getUserBookings, getWorkerBookings } from './services/bookings';
 import { listenToWorkers, toggleWorkerAvailability, updateWorkerLocation } from './services/workers';
 
 const emptyForm = {
@@ -153,7 +153,9 @@ function App() {
   const [formErrors, setFormErrors] = useState({});
   const [confirmedBooking, setConfirmedBooking] = useState(null);
   const [bookingError, setBookingError] = useState('');
+  const [bookingAssignmentError, setBookingAssignmentError] = useState('');
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
+  const [isAssigningBookingWorker, setIsAssigningBookingWorker] = useState(false);
   const [workers, setWorkers] = useState([]);
   const [workersLoading, setWorkersLoading] = useState(true);
   const [workersError, setWorkersError] = useState('');
@@ -440,6 +442,7 @@ function App() {
     setFormErrors({});
     setConfirmedBooking(null);
     setBookingError('');
+    setBookingAssignmentError('');
     setIsBookingOpen(true);
   };
 
@@ -458,6 +461,7 @@ function App() {
     setIsResolvingBookingAddress(false);
     setShowBookingServiceSelect(false);
     setBookingError('');
+    setBookingAssignmentError('');
   };
 
   const handleServiceSelect = (service) => {
@@ -542,15 +546,13 @@ function App() {
       service: trimmedService,
       locationCoordinates: bookingLocation ? { lat: bookingLocation.lat, lng: bookingLocation.lng } : null,
     };
-    const nextMatchedWorkers = getMatchedWorkersForBooking(draftBooking, workers);
-    const assignedWorker = nextMatchedWorkers[0] || null;
 
     setIsSubmittingBooking(true);
     setBookingError('');
+    setBookingAssignmentError('');
 
     try {
       const savedBooking = await createBooking({
-        assignedWorkerId: assignedWorker?.id || null,
         userId: userSession?.id || null,
         customerName: draftBooking.name,
         customerPhone: draftBooking.phone,
@@ -560,11 +562,14 @@ function App() {
       });
 
       setConfirmedBooking({
+        id: savedBooking.id,
         ...draftBooking,
         assignedWorkerId: savedBooking.workerId,
         status: savedBooking.status,
         createdAt: savedBooking.createdAt,
-        assignedWorkerName: assignedWorker?.name || '',
+        assignedWorkerName: savedBooking.workerName || '',
+        assignedWorkerPhone: savedBooking.workerPhone || '',
+        userId: savedBooking.userId || userSession?.id || null,
       });
       setBookingService('');
       setIsResolvingBookingAddress(false);
@@ -574,6 +579,54 @@ function App() {
       setBookingError(error.message || 'Unable to confirm your booking right now.');
     } finally {
       setIsSubmittingBooking(false);
+    }
+  };
+
+  const handleAssignWorkerToBooking = async (worker) => {
+    if (!confirmedBooking?.id || !userSession?.id || !worker?.id) {
+      return;
+    }
+
+    setIsAssigningBookingWorker(true);
+    setBookingAssignmentError('');
+
+    try {
+      const updatedBooking = await assignWorkerToBooking(confirmedBooking.id, {
+        userId: userSession.id,
+        workerId: worker.id,
+      });
+
+      setConfirmedBooking((currentBooking) => {
+        if (!currentBooking) {
+          return currentBooking;
+        }
+
+        return {
+          ...currentBooking,
+          assignedWorkerId: updatedBooking.workerId,
+          assignedWorkerName: updatedBooking.workerName || worker.name || '',
+          assignedWorkerPhone: updatedBooking.workerPhone || worker.phone || '',
+          status: updatedBooking.status,
+        };
+      });
+
+      setUserBookings((currentBookings) =>
+        currentBookings.map((booking) =>
+          booking.id === updatedBooking.id
+            ? {
+                ...booking,
+                workerId: updatedBooking.workerId,
+                workerName: updatedBooking.workerName || worker.name || '',
+                workerPhone: updatedBooking.workerPhone || worker.phone || '',
+                status: updatedBooking.status,
+              }
+            : booking
+        )
+      );
+    } catch (error) {
+      setBookingAssignmentError(error.message || 'Unable to assign this worker right now.');
+    } finally {
+      setIsAssigningBookingWorker(false);
     }
   };
 
@@ -912,10 +965,13 @@ function App() {
         matchedWorkers={matchedWorkers}
         submissionError={bookingError}
         isSubmitting={isSubmittingBooking}
+        isAssigningWorker={isAssigningBookingWorker}
+        workerAssignmentError={bookingAssignmentError}
         isResolvingAddress={isResolvingBookingAddress}
         selectedLocation={bookingLocation}
         onClose={closeBooking}
         onChange={handleInputChange}
+        onAssignWorker={handleAssignWorkerToBooking}
         onLocationPick={handleMapLocationSelect}
         onSubmit={handleSubmit}
       />

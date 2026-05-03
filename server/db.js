@@ -660,6 +660,114 @@ export const createBooking = async ({
   return normalizeBookingRow(result.rows[0]);
 };
 
+export const assignWorkerToBooking = async ({ bookingId, userId, workerId }) => {
+  const nextBookingId = bookingId?.trim() || '';
+  const nextUserId = userId?.trim() || '';
+  const nextWorkerId = workerId?.trim() || '';
+
+  if (!nextBookingId) {
+    throw new Error('Booking id is required.');
+  }
+
+  if (!nextUserId) {
+    throw new Error('User id is required.');
+  }
+
+  if (!nextWorkerId) {
+    throw new Error('Worker id is required.');
+  }
+
+  if (!pool) {
+    const booking = memoryBookings.find((currentBooking) => currentBooking.id === nextBookingId) || null;
+
+    if (!booking) {
+      throw new Error('Booking not found.');
+    }
+
+    if (!booking.userId || booking.userId !== nextUserId) {
+      throw new Error('You cannot update this booking.');
+    }
+
+    const worker = memoryWorkers.find((currentWorker) => currentWorker.id === nextWorkerId) || null;
+
+    if (!worker) {
+      throw new Error('Worker not found.');
+    }
+
+    if (!worker.available) {
+      throw new Error('Selected worker is not available right now.');
+    }
+
+    if (worker.service !== booking.service) {
+      throw new Error('Selected worker does not match this service.');
+    }
+
+    booking.workerId = worker.id;
+    booking.status = 'assigned';
+    booking.updatedAt = Date.now();
+
+    return attachWorkerSnapshotToBooking(booking);
+  }
+
+  const bookingResult = await pool.query(
+    `
+      SELECT id, user_id, service
+      FROM bookings
+      WHERE id = $1
+      LIMIT 1;
+    `,
+    [nextBookingId]
+  );
+
+  if (bookingResult.rowCount === 0) {
+    throw new Error('Booking not found.');
+  }
+
+  const booking = bookingResult.rows[0];
+
+  if (!booking.user_id || booking.user_id !== nextUserId) {
+    throw new Error('You cannot update this booking.');
+  }
+
+  const workerResult = await pool.query(
+    `
+      SELECT id, service, available
+      FROM workers
+      WHERE id = $1
+      LIMIT 1;
+    `,
+    [nextWorkerId]
+  );
+
+  if (workerResult.rowCount === 0) {
+    throw new Error('Worker not found.');
+  }
+
+  const worker = workerResult.rows[0];
+
+  if (!worker.available) {
+    throw new Error('Selected worker is not available right now.');
+  }
+
+  if (worker.service !== booking.service) {
+    throw new Error('Selected worker does not match this service.');
+  }
+
+  const result = await pool.query(
+    `
+      UPDATE bookings
+      SET worker_id = $2,
+          status = 'assigned',
+          updated_at = NOW()
+      WHERE id = $1
+      RETURNING id, worker_id, user_id, customer_name, customer_phone, customer_address, service, status, latitude, longitude, created_at, updated_at;
+    `,
+    [nextBookingId, nextWorkerId]
+  );
+
+  return getBookingById(result.rows[0].id);
+};
+
 export const listBookingsForWorker = async (workerId) => {
   if (!pool) {
     return memoryBookings

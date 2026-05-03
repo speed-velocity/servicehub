@@ -24,6 +24,21 @@ export const createBooking = async (booking) => {
   return parseJsonResponse(response);
 };
 
+export const assignWorkerToBooking = async (bookingId, { userId, workerId }) => {
+  const response = await fetch(getApiUrl(`/api/bookings/${bookingId}/worker`), {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      userId,
+      workerId,
+    }),
+  });
+
+  return parseJsonResponse(response);
+};
+
 export const getWorkerBookings = async (workerId) => {
   const response = await fetch(getApiUrl(`/api/workers/${workerId}/bookings`));
   const payload = await parseJsonResponse(response);

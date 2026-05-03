@@ -12,10 +12,13 @@ const BookingModal = ({
   matchedWorkers,
   submissionError,
   isSubmitting,
+  isAssigningWorker,
+  workerAssignmentError,
   isResolvingAddress,
   selectedLocation,
   onClose,
   onChange,
+  onAssignWorker,
   onLocationPick,
   onSubmit,
 }) => {
@@ -95,8 +98,8 @@ const BookingModal = ({
             </h3>
             <p style={{ color: '#9ca3af', marginBottom: '1.5rem' }}>
               {confirmedBooking.assignedWorkerName
-                ? `${confirmedBooking.assignedWorkerName} has been assigned to this booking.`
-                : 'Your booking is saved. We will assign a worker as soon as one is available.'}
+                ? `${confirmedBooking.assignedWorkerName} has been selected for this booking.`
+                : 'Your booking is saved. Please choose a worker below yourself.'}
             </p>
 
             <div className="booking-summary">
@@ -139,11 +142,26 @@ const BookingModal = ({
                       ) : null}
                       {worker.phone ? <p className="worker-contact">{worker.phone}</p> : null}
 
-                      {worker.phone ? (
-                        <a className="btn-outline booking-worker-call" href={`tel:${worker.phone.replace(/\s+/g, '')}`}>
-                          Call Worker
-                        </a>
-                      ) : null}
+                      <div className="portal-account-actions">
+                        <button
+                          type="button"
+                          className={confirmedBooking.assignedWorkerId === worker.id ? 'btn-primary booking-worker-call' : 'btn-outline booking-worker-call'}
+                          disabled={isAssigningWorker || confirmedBooking.assignedWorkerId === worker.id}
+                          onClick={() => onAssignWorker(worker)}
+                        >
+                          {confirmedBooking.assignedWorkerId === worker.id
+                            ? 'Worker Selected'
+                            : isAssigningWorker
+                              ? 'Saving...'
+                              : 'Choose Worker'}
+                        </button>
+
+                        {worker.phone ? (
+                          <a className="btn-outline booking-worker-call" href={`tel:${worker.phone.replace(/\s+/g, '')}`}>
+                            Call Worker
+                          </a>
+                        ) : null}
+                      </div>
                     </article>
                   ))}
                 </div>
@@ -152,6 +170,12 @@ const BookingModal = ({
                   No available workers match this service right now.
                 </div>
               )}
+
+              {workerAssignmentError ? (
+                <div className="workers-feedback" role="alert" style={{ marginBottom: 0, marginTop: '1rem' }}>
+                  {workerAssignmentError}
+                </div>
+              ) : null}
             </div>
 
             <button
