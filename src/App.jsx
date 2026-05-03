@@ -896,6 +896,8 @@ function App() {
       const user = await registerUserAccount({ email, password });
       window.sessionStorage.removeItem(authIntentStorageKey);
       setUserSession(user);
+      window.localStorage.setItem(userSessionStorageKey, JSON.stringify(user));
+      window.location.href = '/';
       return user;
     } catch (error) {
       setUserRegistrationError(error.message || 'Unable to create your user account right now.');
@@ -914,6 +916,8 @@ function App() {
       const user = await loginUserAccount({ email, password });
       window.sessionStorage.removeItem(authIntentStorageKey);
       setUserSession(user);
+      window.localStorage.setItem(userSessionStorageKey, JSON.stringify(user));
+      window.location.href = '/';
       return user;
     } catch (error) {
       setUserLoginError(error.message || 'Unable to login right now.');

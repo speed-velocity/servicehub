@@ -2536,24 +2536,27 @@ body::before {
 }
 
 .account-tab-strip {
-  display: inline-flex;
+  display: flex;
   gap: 0.55rem;
   padding: 0.35rem;
-  border-radius: 18px;
+  border-radius: 22px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  width: fit-content;
+  width: 100%;
+  max-width: 540px;
 }
 
 .account-tab-chip {
   border: 0;
-  border-radius: 14px;
-  padding: 0.85rem 1rem;
+  border-radius: 18px;
+  padding: 1rem 1.1rem;
   background: transparent;
   color: #a7b0c2;
   font-weight: 700;
   cursor: pointer;
   transition: background 180ms ease, color 180ms ease;
+  flex: 1 1 0;
+  min-height: 56px;
 }
 
 .account-tab-chip.is-active {
@@ -2561,15 +2564,98 @@ body::before {
   color: #ffffff;
 }
 
+.user-account-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 1.5rem;
+  align-items: stretch;
+  padding: 2rem;
+}
+
+.user-account-hero-copy {
+  display: grid;
+  gap: 0.9rem;
+  align-content: start;
+}
+
+.user-account-hero-copytext {
+  max-width: 720px;
+  font-size: 1rem;
+  line-height: 1.82;
+}
+
+.user-account-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.user-account-hero-stat,
+.account-overview-card {
+  padding: 1.25rem;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 18px 36px rgba(2, 6, 23, 0.14);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.user-account-hero-stat {
+  display: grid;
+  gap: 0.45rem;
+  align-content: center;
+  text-align: center;
+}
+
+.user-account-hero-stat span {
+  color: #93c5fd;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.user-account-hero-stat strong {
+  color: #ffffff;
+  font-size: 1.7rem;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.account-overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+  gap: 1rem;
+}
+
+.account-overview-card-wide {
+  min-height: 100%;
+}
+
+.account-overview-email {
+  margin-top: 0.6rem;
+  color: #ffffff;
+  font-size: clamp(1.2rem, 1.55vw, 1.65rem);
+  line-height: 1.35;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.account-overview-actions {
+  margin-top: 1.25rem;
+}
+
 .profile-workspace {
   display: grid;
-  gap: 1rem;
+  gap: 1.2rem;
 }
 
 .profile-summary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1.2rem;
 }
 
 .profile-summary-card,
@@ -2577,10 +2663,14 @@ body::before {
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.045);
-  padding: 1.15rem;
+  padding: 1.3rem;
   box-shadow: 0 18px 36px rgba(2, 6, 23, 0.14);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+}
+
+.profile-summary-card-wide {
+  grid-column: span 2;
 }
 
 .profile-summary-label {
@@ -2594,20 +2684,23 @@ body::before {
 .profile-summary-value {
   margin-top: 0.55rem;
   color: #ffffff;
-  font-size: 1.35rem;
+  font-size: clamp(1.05rem, 1.2vw, 1.35rem);
   font-weight: 800;
   line-height: 1.2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .profile-summary-copy {
   margin-top: 0.65rem;
   color: #a7b0c2;
-  line-height: 1.65;
+  line-height: 1.78;
 }
 
 .profile-booking-list {
   display: grid;
-  gap: 0.9rem;
+  gap: 1rem;
 }
 
 .profile-booking-item-top {
@@ -2656,14 +2749,21 @@ body::before {
   .auth-switchboard,
   .portal-auth-grid,
   .portal-form-grid,
-  .profile-summary-grid {
+  .profile-summary-grid,
+  .account-overview-grid,
+  .user-account-hero {
     grid-template-columns: 1fr;
+  }
+
+  .profile-summary-card-wide {
+    grid-column: auto;
   }
 
   .worker-dashboard-stats,
   .worker-bookings-grid,
   .auth-showcase-card-grid-compact,
-  .auth-switchboard-highlights {
+  .auth-switchboard-highlights,
+  .user-account-hero-stats {
     grid-template-columns: 1fr;
   }
 
@@ -2682,6 +2782,8 @@ body::before {
   .worker-booking-card,
   .profile-summary-card,
   .profile-booking-item,
+  .account-overview-card,
+  .user-account-hero-stat,
   .worker-dashboard-stat,
   .desktop-nav,
   .desktop-nav-glass,
@@ -2757,11 +2859,17 @@ body::before {
 
   .account-tab-strip {
     width: 100%;
+    max-width: none;
+    flex-wrap: wrap;
   }
 
   .account-tab-chip,
   .profile-action-btn,
   .booking-chat-toggle {
+    width: 100%;
+  }
+
+  .portal-action-link {
     width: 100%;
   }
 }

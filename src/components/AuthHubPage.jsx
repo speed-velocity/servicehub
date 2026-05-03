@@ -208,7 +208,7 @@ const AuthHubPage = ({
   const [workerRegisterErrors, setWorkerRegisterErrors] = useState({});
   const [workerLoginErrors, setWorkerLoginErrors] = useState({});
   const [workerRegisterSuccess, setWorkerRegisterSuccess] = useState('');
-  const [activeUserTab, setActiveUserTab] = useState('bookings');
+  const [activeUserTab, setActiveUserTab] = useState('account');
   const [visiblePasswords, setVisiblePasswords] = useState({
     userRegister: false,
     userLogin: false,
@@ -222,7 +222,7 @@ const AuthHubPage = ({
 
   useEffect(() => {
     if (!userSession) {
-      setActiveUserTab('bookings');
+      setActiveUserTab('account');
     }
   }, [userSession]);
 
@@ -813,22 +813,28 @@ const AuthHubPage = ({
 
       return (
         <section className="portal-stack">
-          <section className="portal-panel-card portal-stack auth-form-panel">
-            <div className="auth-form-header">
-              <div className="section-badge">Signed In</div>
-              <h2 className="auth-form-title">{userSession.email}</h2>
-              <p className="portal-inline-copy">
-                Your account is active on this device. You can review your bookings here and chat with assigned workers.
+          <section className="portal-panel-card user-account-hero">
+            <div className="user-account-hero-copy">
+              <div className="section-badge">User Workspace</div>
+              <h2 className="portal-page-title">Your account, bookings, and profile tools</h2>
+              <p className="portal-inline-copy user-account-hero-copytext">
+                Everything is organized into cleaner tabs now, so booking chats, account details, and profile actions
+                stay easy to scan without feeling cramped.
               </p>
             </div>
-
-            <div className="portal-account-actions">
-              <a href="/" className="btn-primary portal-action-link">
-                Go To Home
-              </a>
-              <button type="button" className="btn-outline portal-action-link" onClick={onLogoutUser}>
-                Logout
-              </button>
+            <div className="user-account-hero-stats">
+              <article className="user-account-hero-stat">
+                <span>Total</span>
+                <strong>{userBookings.length}</strong>
+              </article>
+              <article className="user-account-hero-stat">
+                <span>Assigned</span>
+                <strong>{assignedCount}</strong>
+              </article>
+              <article className="user-account-hero-stat">
+                <span>Pending</span>
+                <strong>{pendingCount}</strong>
+              </article>
             </div>
           </section>
 
@@ -848,6 +854,7 @@ const AuthHubPage = ({
 
             <div className="account-tab-strip" role="tablist" aria-label="Account sections">
               {[
+                { id: 'account', label: 'Account' },
                 { id: 'bookings', label: 'Bookings' },
                 { id: 'profile', label: 'Profile' },
               ].map((tab) => (
@@ -861,6 +868,35 @@ const AuthHubPage = ({
                 </button>
               ))}
             </div>
+
+            {activeUserTab === 'account' ? (
+              <div className="account-overview-grid">
+                <article className="account-overview-card account-overview-card-wide">
+                  <p className="profile-summary-label">Signed In Email</p>
+                  <h3 className="account-overview-email">{userSession.email}</h3>
+                  <p className="profile-summary-copy">
+                    This device is currently signed in to your ServX user account. Use the tabs here to check bookings,
+                    chat with assigned workers, and manage cancellations or deletions.
+                  </p>
+                </article>
+
+                <article className="account-overview-card">
+                  <p className="profile-summary-label">Quick Access</p>
+                  <h3 className="profile-summary-value">Home + Logout</h3>
+                  <p className="profile-summary-copy">
+                    Jump back to the landing page or safely sign out from this device whenever you need.
+                  </p>
+                  <div className="portal-account-actions account-overview-actions">
+                    <a href="/" className="btn-primary portal-action-link">
+                      Go To Home
+                    </a>
+                    <button type="button" className="btn-outline portal-action-link" onClick={onLogoutUser}>
+                      Logout
+                    </button>
+                  </div>
+                </article>
+              </div>
+            ) : null}
 
             {activeUserTab === 'bookings' ? (
               <>
@@ -931,7 +967,7 @@ const AuthHubPage = ({
             {activeUserTab === 'profile' ? (
               <div className="profile-workspace">
                 <section className="profile-summary-grid">
-                  <article className="profile-summary-card">
+                  <article className="profile-summary-card profile-summary-card-wide">
                     <p className="profile-summary-label">Account Email</p>
                     <h3 className="profile-summary-value">{userSession.email}</h3>
                     <p className="profile-summary-copy">Use this profile space to manage booking lifecycle actions safely.</p>
